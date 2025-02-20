@@ -1,101 +1,280 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // State for basic search
+  const [searchQuery, setSearchQuery] = useState('');
+  // Advanced search criteria state
+  const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [bedrooms, setBedrooms] = useState('');
+  const [bathrooms, setBathrooms] = useState('');
+  
+  // State for listings and feedback
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Function to fetch all listings and then filter them based on the criteria
+  const handleSearch = async () => {
+    // Only search if at least one criterion is provided
+    if (
+      !searchQuery.trim() &&
+      !priceMin.trim() &&
+      !priceMax.trim() &&
+      !bedrooms.trim() &&
+      !bathrooms.trim()
+    ) {
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:3001/api/listings');
+      if (!res.ok) throw new Error('Network response was not ok');
+      const data = await res.json();
+      // Filter listings based on both basic and advanced criteria
+      const filtered = data.filter((listing: any) => {
+        // Basic search: by city or street name
+        let matchesBasic = true;
+        if (searchQuery.trim()) {
+          matchesBasic =
+            (listing.City &&
+              listing.City.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (listing.StreetName &&
+              listing.StreetName.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+
+        // Advanced filters
+        let matchesAdvanced = true;
+        if (priceMin.trim()) {
+          matchesAdvanced = matchesAdvanced && listing.ListPrice >= Number(priceMin);
+        }
+        if (priceMax.trim()) {
+          matchesAdvanced = matchesAdvanced && listing.ListPrice <= Number(priceMax);
+        }
+        if (bedrooms.trim()) {
+          // Assuming the JSON field for bedroom count is "BedroomsTotal"
+          matchesAdvanced = matchesAdvanced && listing.BedroomsTotal >= Number(bedrooms);
+        }
+        if (bathrooms.trim()) {
+          // Assuming the JSON field for bathroom count is "BathroomsTotalInteger"
+          matchesAdvanced = matchesAdvanced && listing.BathroomsTotalInteger >= Number(bathrooms);
+        }
+        return matchesBasic && matchesAdvanced;
+      });
+      setListings(filtered);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch();
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      {/* Hero Section */}
+      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1>Welcome to Home Search</h1>
+        <p>Find your next home quickly and easily.</p>
+        <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
+          <input
+            type="text"
+            placeholder="Enter city or street..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              padding: '10px',
+              width: '300px',
+              fontSize: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+            }}
+          />
+          <button
+            type="submit"
+            style={{
+              marginLeft: '10px',
+              padding: '10px 20px',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: '#0070f3',
+              color: '#fff',
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Search
+          </button>
+        </form>
+        <div style={{ marginTop: '20px' }}>
+          <button
+            onClick={() => setAdvancedSearchVisible(!advancedSearchVisible)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              border: '1px solid #0070f3',
+              backgroundColor: advancedSearchVisible ? '#0070f3' : '#fff',
+              color: advancedSearchVisible ? '#fff' : '#0070f3',
+            }}
           >
-            Read our docs
-          </a>
+            {advancedSearchVisible ? 'Hide Advanced Search' : 'Show Advanced Search'}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {advancedSearchVisible && (
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <input
+                type="number"
+                placeholder="Min Price"
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                style={{
+                  padding: '8px',
+                  width: '120px',
+                  fontSize: '0.9rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  marginRight: '10px'
+                }}
+              />
+              <input
+                type="number"
+                placeholder="Max Price"
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                style={{
+                  padding: '8px',
+                  width: '120px',
+                  fontSize: '0.9rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px'
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '10px' }}>
+              <input
+                type="number"
+                placeholder="Bedrooms"
+                value={bedrooms}
+                onChange={(e) => setBedrooms(e.target.value)}
+                style={{
+                  padding: '8px',
+                  width: '120px',
+                  fontSize: '0.9rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  marginRight: '10px'
+                }}
+              />
+              <input
+                type="number"
+                placeholder="Bathrooms"
+                value={bathrooms}
+                onChange={(e) => setBathrooms(e.target.value)}
+                style={{
+                  padding: '8px',
+                  width: '120px',
+                  fontSize: '0.9rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px'
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Search Results */}
+      {loading && <p>Loading listings...</p>}
+      {error && <p>Error: {error}</p>}
+      {listings.length > 0 ? (
+        <ul style={{
+          listStyle: 'none',
+          padding: 0,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '20px'
+        }}>
+          {listings.map((listing, index) => {
+            const address = `${listing.StreetNumber || ''} ${listing.StreetName || ''} ${listing.StreetSuffix || ''}`.trim();
+            const price = listing.ListPrice || 'N/A';
+            const city = listing.City || 'Unknown City';
+            const imageUrl =
+              listing.Media && listing.Media.length > 0
+                ? listing.Media[0].MediaURL
+                : null;
+            const key = `${(listing.ListingId || listing.ListingKey) ?? 'listing'}-${index}`;
+
+            return (
+              <li
+                key={key}
+                style={{
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  padding: '10px',
+                  backgroundColor: '#fff'
+                }}
+              >
+                <Link href={`/listing/${listing.ListingKey || listing.ListingId}`}>
+                  <div style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
+                    <div style={{
+                      height: '120px',
+                      width: '100%',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginBottom: '10px'
+                    }}>
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={address}
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <p>No image available</p>
+                      )}
+                    </div>
+                    <h3 style={{ fontSize: '1rem', margin: '0 0 5px' }}>{address || 'No Address Provided'}</h3>
+                    <p style={{ fontSize: '0.9rem', margin: '0' }}>{city} — ${price}</p>
+                    {/* Display the listing broker info */}
+                    {listing.ListOfficeName && (
+                      <p style={{ fontSize: '0.8rem', margin: '5px 0 0', color: '#555' }}>
+                        {listing.ListOfficeName}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        !loading && (
+          <p style={{ textAlign: 'center' }}>
+            {(searchQuery.trim() ||
+              priceMin ||
+              priceMax ||
+              bedrooms ||
+              bathrooms)
+              ? "No listings found. Please adjust your search criteria."
+              : "Please enter your search criteria above."}
+          </p>
+        )
+      )}
     </div>
   );
 }
