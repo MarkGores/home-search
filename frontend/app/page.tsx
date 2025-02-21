@@ -1,24 +1,24 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  // State for basic search
-  const [searchQuery, setSearchQuery] = useState('');
-  // Advanced search criteria state
+
+  // Basic search state
+  const [searchQuery, setSearchQuery] = useState("");
+  // Advanced search states
   const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
-  const [priceMin, setPriceMin] = useState('');
-  const [priceMax, setPriceMax] = useState('');
-  const [bedrooms, setBedrooms] = useState('');
-  const [bathrooms, setBathrooms] = useState('');
-  
-  // State for listings and feedback
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
+  // Listings and feedback
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to fetch all listings and then filter them based on the criteria
+  // Fetch listings from backend and filter based on criteria
   const handleSearch = async () => {
     // Only search if at least one criterion is provided
     if (
@@ -33,10 +33,9 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:3001/api/listings');
-      if (!res.ok) throw new Error('Network response was not ok');
+      const res = await fetch("http://localhost:3001/api/listings");
+      if (!res.ok) throw new Error("Network response was not ok");
       const data = await res.json();
-      // Filter listings based on both basic and advanced criteria
       const filtered = data.filter((listing: any) => {
         // Basic search: by city or street name
         let matchesBasic = true;
@@ -47,7 +46,6 @@ export default function Home() {
             (listing.StreetName &&
               listing.StreetName.toLowerCase().includes(searchQuery.toLowerCase()));
         }
-
         // Advanced filters
         let matchesAdvanced = true;
         if (priceMin.trim()) {
@@ -57,11 +55,11 @@ export default function Home() {
           matchesAdvanced = matchesAdvanced && listing.ListPrice <= Number(priceMax);
         }
         if (bedrooms.trim()) {
-          // Assuming the JSON field for bedroom count is "BedroomsTotal"
+          // Assuming "BedroomsTotal" is the JSON field for bedroom count
           matchesAdvanced = matchesAdvanced && listing.BedroomsTotal >= Number(bedrooms);
         }
         if (bathrooms.trim()) {
-          // Assuming the JSON field for bathroom count is "BathroomsTotalInteger"
+          // Assuming "BathroomsTotalInteger" is the JSON field for bathroom count
           matchesAdvanced = matchesAdvanced && listing.BathroomsTotalInteger >= Number(bathrooms);
         }
         return matchesBasic && matchesAdvanced;
@@ -80,115 +78,68 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+    <div className="p-5 font-sans">
       {/* Hero Section */}
-      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1>Welcome to Home Search</h1>
-        <p>Find your next home quickly and easily.</p>
-        <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
+      <header className="text-center mb-10">
+        <h1 className="text-3xl font-bold">Welcome to Home Search</h1>
+        <p className="mt-2 text-lg">Find your next home quickly and easily.</p>
+        <form onSubmit={handleSubmit} className="mt-4 flex justify-center">
           <input
             type="text"
             placeholder="Enter city or street..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              padding: '10px',
-              width: '300px',
-              fontSize: '1rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
+            className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
-            style={{
-              marginLeft: '10px',
-              padding: '10px 20px',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              borderRadius: '4px',
-              border: 'none',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-            }}
+            className="ml-3 px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             Search
           </button>
         </form>
-        <div style={{ marginTop: '20px' }}>
-          <button
-            onClick={() => setAdvancedSearchVisible(!advancedSearchVisible)}
-            style={{
-              padding: '8px 16px',
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              borderRadius: '4px',
-              border: '1px solid #0070f3',
-              backgroundColor: advancedSearchVisible ? '#0070f3' : '#fff',
-              color: advancedSearchVisible ? '#fff' : '#0070f3',
-            }}
-          >
-            {advancedSearchVisible ? 'Hide Advanced Search' : 'Show Advanced Search'}
-          </button>
-        </div>
+        <button
+          onClick={() => setAdvancedSearchVisible(!advancedSearchVisible)}
+          className={`mt-4 px-4 py-2 rounded border ${
+            advancedSearchVisible
+              ? "bg-blue-600 text-white"
+              : "bg-white text-blue-600 border-blue-600"
+          } transition`}
+        >
+          {advancedSearchVisible ? "Hide Advanced Search" : "Show Advanced Search"}
+        </button>
         {advancedSearchVisible && (
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <div style={{ marginBottom: '10px' }}>
+          <div className="mt-4 flex flex-col items-center space-y-3">
+            <div className="flex space-x-3">
               <input
                 type="number"
                 placeholder="Min Price"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
-                style={{
-                  padding: '8px',
-                  width: '120px',
-                  fontSize: '0.9rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  marginRight: '10px'
-                }}
+                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
                 placeholder="Max Price"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
-                style={{
-                  padding: '8px',
-                  width: '120px',
-                  fontSize: '0.9rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
+                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div style={{ marginBottom: '10px' }}>
+            <div className="flex space-x-3">
               <input
                 type="number"
                 placeholder="Bedrooms"
                 value={bedrooms}
                 onChange={(e) => setBedrooms(e.target.value)}
-                style={{
-                  padding: '8px',
-                  width: '120px',
-                  fontSize: '0.9rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  marginRight: '10px'
-                }}
+                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
                 placeholder="Bathrooms"
                 value={bathrooms}
                 onChange={(e) => setBathrooms(e.target.value)}
-                style={{
-                  padding: '8px',
-                  width: '120px',
-                  fontSize: '0.9rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
+                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -199,62 +150,37 @@ export default function Home() {
       {loading && <p>Loading listings...</p>}
       {error && <p>Error: {error}</p>}
       {listings.length > 0 ? (
-        <ul style={{
-          listStyle: 'none',
-          padding: 0,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '20px'
-        }}>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {listings.map((listing, index) => {
-            const address = `${listing.StreetNumber || ''} ${listing.StreetName || ''} ${listing.StreetSuffix || ''}`.trim();
-            const price = listing.ListPrice || 'N/A';
-            const city = listing.City || 'Unknown City';
+            const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
+            const price = listing.ListPrice || "N/A";
+            const city = listing.City || "Unknown City";
             const imageUrl =
               listing.Media && listing.Media.length > 0
                 ? listing.Media[0].MediaURL
                 : null;
-            const key = `${(listing.ListingId || listing.ListingKey) ?? 'listing'}-${index}`;
-
+            const key = `${(listing.ListingId || listing.ListingKey) ?? "listing"}-${index}`;
             return (
-              <li
-                key={key}
-                style={{
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  padding: '10px',
-                  backgroundColor: '#fff'
-                }}
-              >
+              <li key={key} className="border rounded overflow-hidden bg-white p-4">
                 <Link href={`/listing/${listing.ListingKey || listing.ListingId}`}>
-                  <div style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
-                    <div style={{
-                      height: '120px',
-                      width: '100%',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBottom: '10px'
-                    }}>
+                  <div className="cursor-pointer">
+                    <div className="h-32 w-full overflow-hidden flex justify-center items-center mb-2">
                       {imageUrl ? (
                         <img
                           src={imageUrl}
                           alt={address}
-                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
+                          className="object-cover w-full h-full"
                         />
                       ) : (
-                        <p>No image available</p>
+                        <p className="text-sm text-center">No image available</p>
                       )}
                     </div>
-                    <h3 style={{ fontSize: '1rem', margin: '0 0 5px' }}>{address || 'No Address Provided'}</h3>
-                    <p style={{ fontSize: '0.9rem', margin: '0' }}>{city} — ${price}</p>
-                    {/* Display the listing broker info */}
+                    <h3 className="text-base font-semibold mb-1">
+                      {address || "No Address Provided"}
+                    </h3>
+                    <p className="text-sm mb-1">{city} — ${price}</p>
                     {listing.ListOfficeName && (
-                      <p style={{ fontSize: '0.8rem', margin: '5px 0 0', color: '#555' }}>
-                        {listing.ListOfficeName}
-                      </p>
+                      <p className="text-xs text-gray-600">{listing.ListOfficeName}</p>
                     )}
                   </div>
                 </Link>
@@ -264,12 +190,12 @@ export default function Home() {
         </ul>
       ) : (
         !loading && (
-          <p style={{ textAlign: 'center' }}>
-            {(searchQuery.trim() ||
-              priceMin ||
-              priceMax ||
-              bedrooms ||
-              bathrooms)
+          <p className="text-center">
+            {searchQuery.trim() ||
+            priceMin ||
+            priceMax ||
+            bedrooms ||
+            bathrooms
               ? "No listings found. Please adjust your search criteria."
               : "Please enter your search criteria above."}
           </p>
