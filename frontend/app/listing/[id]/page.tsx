@@ -32,6 +32,9 @@ export default function ListingDetail() {
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
 
+  // State for toggling additional listing details
+  const [showAllDetails, setShowAllDetails] = useState(false);
+
   useEffect(() => {
     fetch(`http://localhost:3001/api/listings/${id}`)
       .then((res) => {
@@ -94,7 +97,7 @@ export default function ListingDetail() {
 
   // Process key details
   const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
-  const price = listing.ListPrice ? `$${Number(listing.ListPrice).toLocaleString()}` : "N/A";
+  const price = listing.ListPrice ? `${Number(listing.ListPrice).toLocaleString()}` : "N/A";
   const city = listing.City || "Unknown City";
   const status = listing.StandardStatus || "Unknown Status";
   const rawMLS = listing.ListingId || listing.ListingKey || "N/A";
@@ -195,11 +198,114 @@ export default function ListingDetail() {
         ))}
       </div>
 
-      {/* Description / Remarks */}
+      {/* Description / Remarks with "See all details" link */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Description / Remarks</h2>
         <p>{remarks}</p>
+        <a 
+          onClick={() => setShowAllDetails(!showAllDetails)}
+          className="text-blue-600 underline cursor-pointer mt-2 block"
+        >
+          See all details
+        </a>
       </div>
+
+      {/* Additional Listing Details (Expanded Section) */}
+      {showAllDetails && (
+        <div className="mb-6 p-4 border rounded bg-gray-100">
+          <h2 className="text-xl font-bold mb-2">Additional Listing Details</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="font-bold">Lot Size</p>
+              <p>{listing.LotSizeArea ? `${listing.LotSizeArea} ${listing.LotSizeUnits || "acres"}` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Agent Owner</p>
+              <p>{listing.NST_AgentOwner || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Amenities</p>
+              <p>{listing.NST_AmenitiesUnit || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Appliances</p>
+              <p>{listing.Appliances ? listing.Appliances.join(", ") : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Association</p>
+              <p>{listing.AssociationYN ? "Yes" : "No"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Association Fee</p>
+              <p>{listing.AssociationFee ? `$${listing.AssociationFee} ${listing.AssociationFeeFrequency ? `(${listing.AssociationFeeFrequency})` : ""}` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Cooling</p>
+              <p>{listing.Cooling ? listing.Cooling.join(", ") : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Fireplace</p>
+              <p>{listing.FireplaceYN ? `Yes (${listing.FireplaceFeatures ? listing.FireplaceFeatures.join(", ") : "N/A"})` : "No"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Bedrooms</p>
+              <p>{listing.BedroomsTotal || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Bathrooms</p>
+              <p>{listing.BathroomsTotalInteger || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Property Type</p>
+              <p>{listing.PropertyType || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Construction Materials</p>
+              <p>{listing.ConstructionMaterials ? listing.ConstructionMaterials.join(", ") : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Foundation Area</p>
+              <p>{listing.FoundationArea ? `${listing.FoundationArea} sqft` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Heating</p>
+              <p>{listing.Heating ? listing.Heating.join(", ") : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Days on Market</p>
+              <p>{listing.DaysOnMarket || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Directions</p>
+              <p>{listing.Directions || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Garage Spaces</p>
+              <p>{listing.GarageSpaces || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Lot Features</p>
+              <p>{listing.LotFeatures ? listing.LotFeatures.join(", ") : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Postal Code</p>
+              <p>{listing.PostalCode || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Year Built</p>
+              <p>{listing.YearBuilt || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Tax Annual Amount</p>
+              <p>{listing.TaxAnnualAmount ? `$${listing.TaxAnnualAmount}` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-bold">Roof</p>
+              <p>{listing.Roof ? listing.Roof.join(", ") : "N/A"}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Broker Reciprocity Statement */}
       <div className="mb-6 flex items-center">
@@ -215,7 +321,7 @@ export default function ListingDetail() {
 {/* Contact Me Button */}
      <button 
         onClick={() => setShowModal(true)}
-        className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+        className="mt-2 mb-10 px-8 py-4 bg-green-600 text-white rounded hover:bg-green-700 transition"
       >
         Contact Mark
       </button>
