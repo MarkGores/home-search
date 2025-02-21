@@ -24,6 +24,12 @@ export default function ListingDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
+  
+  // State for Contact Modal
+  const [showModal, setShowModal] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/listings/${id}`)
@@ -42,11 +48,49 @@ export default function ListingDetail() {
       });
   }, [id]);
 
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    // Gather property details to include with the contact submission
+    const propertyDetails = {
+      listingId: listing.ListingId || listing.ListingKey,
+      address: `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim(),
+      city: listing.City || "Unknown City",
+      price: listing.ListPrice || "N/A",
+    };
+  
+    try {
+      const res = await fetch("http://localhost:3001/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          message: contactMessage,
+          property: propertyDetails, // <-- Added property details
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        console.log("Email sent successfully!");
+      } else {
+        console.error("Failed to send email.");
+      }
+    } catch (error) {
+      console.error("Error submitting contact form", error);
+    }
+    setShowModal(false);
+    setContactName("");
+    setContactEmail("");
+    setContactMessage("");
+  };
+
   if (loading) return <p>Loading listing details...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!listing) return <p>Listing not found</p>;
 
-  // Construct the full address string
   const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
   const price = listing.ListPrice || "N/A";
   const city = listing.City || "Unknown City";
@@ -60,8 +104,8 @@ export default function ListingDetail() {
       <h1 className="text-2xl font-bold">{address || "No Address Provided"}</h1>
       <p className="text-lg">{city} — ${price}</p>
       {listing.ListOfficeName && <BrokerInfo brokerageName={listing.ListOfficeName} />}
-
-      {/* Photo Carousel */}
+      
+      {/* Photo Carousel with Thumbnails */}
       {photos.length > 0 ? (
         <>
           <Swiper
@@ -84,7 +128,6 @@ export default function ListingDetail() {
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* Thumbnails (only if more than one photo exists) */}
           {photos.length > 1 && (
             <Swiper
               onSwiper={setThumbsSwiper}
@@ -119,11 +162,89 @@ export default function ListingDetail() {
           {listing.BathroomsTotalInteger && <li>{listing.BathroomsTotalInteger} Bathrooms</li>}
           {listing.LivingArea && <li>{listing.LivingArea} sq ft living area</li>}
           {listing.LotSizeArea && <li>Lot Size: {listing.LotSizeArea} acres</li>}
-          {/* Add any additional fields as needed */}
         </ul>
       </div>
 
       <p className="mt-4">{listing.PublicRemarks || "No description available"}</p>
+
+      {/* Contact Me Button */}
+      <button 
+        onClick={() => setShowModal(true)}
+        className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+      >
+        Contact Mark
+      </button>
+
+      {/* Contact Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* Modal backdrop */}
+          <div 
+            className="absolute inset-0 bg-black opacity-50"
+            onClick={() => setShowModal(false)}
+          ></div>
+          {/* Modal content */}
+          <div className="relative bg-white p-6 rounded shadow-lg max-w-md w-full z-10">
+            <h2 className="text-xl font-bold mb-4">Contact Me</h2>
+            <form onSubmit={handleContactSubmit}>
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1" htmlFor="name">
+                  Name
+                </label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1" htmlFor="email">
+                  Email
+                </label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1" htmlFor="message">
+                  Message
+                </label>
+                <textarea 
+                  id="message" 
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                  required
+                ></textarea>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,13 +6,16 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all routes
+// Enable CORS and JSON body parsing middleware
 app.use(cors());
+app.use(express.json());
 
+// Root endpoint
 app.get('/', (req, res) => {
   res.send('Backend is up and running!');
 });
 
+// GET all listings endpoint
 app.get('/api/listings', (req, res) => {
   const dataPath = path.join(__dirname, 'data', 'mls_listings.json');
   fs.readFile(dataPath, 'utf8', (err, data) => {
@@ -27,7 +30,10 @@ app.get('/api/listings', (req, res) => {
       console.error('Error parsing MLS JSON:', parseError);
       res.status(500).json({ error: 'Invalid JSON format' });
     }
-  // Add this below your existing endpoints in backend/index.js
+  });
+});
+
+// GET single listing by id endpoint
 app.get('/api/listings/:id', (req, res) => {
   const listingId = req.params.id;
   const dataPath = path.join(__dirname, 'data', 'mls_listings.json');
@@ -38,7 +44,6 @@ app.get('/api/listings/:id', (req, res) => {
     }
     try {
       const listings = JSON.parse(data);
-      // Find the listing by matching ListingId or ListingKey
       const listing = listings.find(item => 
         item.ListingId === listingId || item.ListingKey === listingId
       );
@@ -52,7 +57,14 @@ app.get('/api/listings/:id', (req, res) => {
     }
   });
 });
-  });
+
+// POST /api/contact endpoint to handle contact form submissions
+app.post('/api/contact', (req, res) => {
+  const { name, email, message, property } = req.body;
+  console.log("Contact form data received:", req.body);
+  // Here you could integrate Nodemailer, SendGrid, or another service to send an email
+  // For now, we just return a success response
+  res.json({ success: true, message: 'Contact form submitted successfully' });
 });
 
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

@@ -3,68 +3,87 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function Home() {
+type SearchType = "listings" | "solds";
 
-  // Basic search state
+export default function Home() {
+  // Track whether user has agreed to the license
+  const [licenseAgreed, setLicenseAgreed] = useState(false);
+
+  // Search type state: Listings vs. Solds
+  const [searchType, setSearchType] = useState<SearchType>("listings");
+
+  // Main search state and advanced search fields
   const [searchQuery, setSearchQuery] = useState("");
-  // Advanced search states
-  const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
-  // Listings and feedback
+
+  // Additional fields for sold search
+  const [addressForSold, setAddressForSold] = useState("");
+  const [mileageRadius, setMileageRadius] = useState("");
+
+  // Listings state and UI feedback
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch listings from backend and filter based on criteria
   const handleSearch = async () => {
-    // Only search if at least one criterion is provided
+    // Only search if at least one criterion is provided.
     if (
       !searchQuery.trim() &&
       !priceMin.trim() &&
       !priceMax.trim() &&
       !bedrooms.trim() &&
-      !bathrooms.trim()
+      !bathrooms.trim() &&
+      (searchType === "solds" && !addressForSold.trim() && !mileageRadius.trim())
     ) {
       return;
     }
     setLoading(true);
     setError(null);
+
     try {
-      const res = await fetch("http://localhost:3001/api/listings");
-      if (!res.ok) throw new Error("Network response was not ok");
-      const data = await res.json();
-      const filtered = data.filter((listing: any) => {
-        // Basic search: by city or street name
-        let matchesBasic = true;
-        if (searchQuery.trim()) {
-          matchesBasic =
-            (listing.City &&
-              listing.City.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (listing.StreetName &&
-              listing.StreetName.toLowerCase().includes(searchQuery.toLowerCase()));
-        }
-        // Advanced filters
-        let matchesAdvanced = true;
-        if (priceMin.trim()) {
-          matchesAdvanced = matchesAdvanced && listing.ListPrice >= Number(priceMin);
-        }
-        if (priceMax.trim()) {
-          matchesAdvanced = matchesAdvanced && listing.ListPrice <= Number(priceMax);
-        }
-        if (bedrooms.trim()) {
-          // Assuming "BedroomsTotal" is the JSON field for bedroom count
-          matchesAdvanced = matchesAdvanced && listing.BedroomsTotal >= Number(bedrooms);
-        }
-        if (bathrooms.trim()) {
-          // Assuming "BathroomsTotalInteger" is the JSON field for bathroom count
-          matchesAdvanced = matchesAdvanced && listing.BathroomsTotalInteger >= Number(bathrooms);
-        }
-        return matchesBasic && matchesAdvanced;
-      });
-      setListings(filtered);
+      if (searchType === "listings") {
+        const res = await fetch("http://localhost:3001/api/listings");
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+
+        // Filter local listings
+        const filtered = data.filter((listing: any) => {
+          // Basic search: by city or street name
+          let matchesBasic = true;
+          if (searchQuery.trim()) {
+            matchesBasic =
+              (listing.City &&
+                listing.City.toLowerCase().includes(searchQuery.toLowerCase())) ||
+              (listing.StreetName &&
+                listing.StreetName.toLowerCase().includes(searchQuery.toLowerCase()));
+          }
+
+          // Advanced filters
+          let matchesAdvanced = true;
+          if (priceMin.trim()) {
+            matchesAdvanced = matchesAdvanced && listing.ListPrice >= Number(priceMin);
+          }
+          if (priceMax.trim()) {
+            matchesAdvanced = matchesAdvanced && listing.ListPrice <= Number(priceMax);
+          }
+          if (bedrooms.trim()) {
+            matchesAdvanced = matchesAdvanced && listing.BedroomsTotal >= Number(bedrooms);
+          }
+          if (bathrooms.trim()) {
+            matchesAdvanced =
+              matchesAdvanced && listing.BathroomsTotalInteger >= Number(bathrooms);
+          }
+          return matchesBasic && matchesAdvanced;
+        });
+
+        setListings(filtered);
+      } else if (searchType === "solds") {
+        // For solds, since we don't have live data, return an empty array (or a placeholder)
+        setListings([]);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,87 +98,145 @@ export default function Home() {
 
   return (
     <div className="p-5 font-sans">
-      {/* Hero Section */}
+      {/* Search Type Toggle */}
+      <div className="flex justify-center space-x-4 mb-4">
+        <button
+          onClick={() => setSearchType("listings")}
+          className={`px-4 py-2 rounded ${
+            searchType === "listings" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+          }`}
+        >
+          Listings
+        </button>
+        <button
+          onClick={() => setSearchType("solds")}
+          className={`px-4 py-2 rounded ${
+            searchType === "solds" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+          }`}
+        >
+          Solds
+        </button>
+      </div>
+
+      {/* Hero Section and Search Form */}
       <header className="text-center mb-10">
-        <h1 className="text-3xl font-bold">Welcome to Home Search</h1>
-        <p className="mt-2 text-lg">Find your next home quickly and easily.</p>
-        <form onSubmit={handleSubmit} className="mt-4 flex justify-center">
-          <input
-            type="text"
-            placeholder="Enter city or street..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <h1 className="text-3xl font-bold">Welcome to ListingsAndSolds.com</h1>
+        <p className="mt-2 text-lg">Search for properties and comparable solds.</p>
+
+        <form onSubmit={handleSubmit} className="mt-4 flex flex-col items-center space-y-4">
+          {/* Basic and Sold-Specific Fields */}
+          <div className="flex flex-col sm:flex-row sm:space-x-3">
+            <input
+              type="text"
+              placeholder="Enter city or street..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {searchType === "solds" && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Address for Sold Search..."
+                  value={addressForSold}
+                  onChange={(e) => setAddressForSold(e.target.value)}
+                  className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 sm:mt-0"
+                />
+                <input
+                  type="number"
+                  placeholder="Mileage Radius (miles)"
+                  value={mileageRadius}
+                  onChange={(e) => setMileageRadius(e.target.value)}
+                  className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 sm:mt-0"
+                />
+              </>
+            )}
+          </div>
+
+          {/* Advanced Search Options */}
+          <div className="flex flex-wrap justify-center gap-3">
+            <input
+              type="number"
+              placeholder="Min Price"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="number"
+              placeholder="Max Price"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="number"
+              placeholder="Bedrooms"
+              value={bedrooms}
+              onChange={(e) => setBedrooms(e.target.value)}
+              className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="number"
+              placeholder="Bathrooms"
+              value={bathrooms}
+              onChange={(e) => setBathrooms(e.target.value)}
+              className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Checkbox for License Agreement */}
+          <div className="flex items-center mt-2">
+            <input
+              type="checkbox"
+              id="licenseAgree"
+              checked={licenseAgreed}
+              onChange={(e) => setLicenseAgreed(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="licenseAgree" className="text-sm">
+              I have read and agree to the{" "}
+              <Link 
+                href="/license" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-blue-600 underline"
+              >
+                terms of the license agreement
+              </Link>
+              .
+            </label>          
+            </div>
+
           <button
             type="submit"
-            className="ml-3 px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            disabled={!licenseAgreed}
+            className={`mt-4 px-4 py-3 rounded transition ${
+              licenseAgreed
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Search
           </button>
         </form>
-        <button
-          onClick={() => setAdvancedSearchVisible(!advancedSearchVisible)}
-          className={`mt-4 px-4 py-2 rounded border ${
-            advancedSearchVisible
-              ? "bg-blue-600 text-white"
-              : "bg-white text-blue-600 border-blue-600"
-          } transition`}
-        >
-          {advancedSearchVisible ? "Hide Advanced Search" : "Show Advanced Search"}
-        </button>
-        {advancedSearchVisible && (
-          <div className="mt-4 flex flex-col items-center space-y-3">
-            <div className="flex space-x-3">
-              <input
-                type="number"
-                placeholder="Min Price"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Max Price"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex space-x-3">
-              <input
-                type="number"
-                placeholder="Bedrooms"
-                value={bedrooms}
-                onChange={(e) => setBedrooms(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Bathrooms"
-                value={bathrooms}
-                onChange={(e) => setBathrooms(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Search Results */}
-      {loading && <p>Loading listings...</p>}
-      {error && <p>Error: {error}</p>}
+      {loading && <p className="text-center">Loading listings...</p>}
+      {error && <p className="text-center text-red-600">Error: {error}</p>}
       {listings.length > 0 ? (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {listings.map((listing, index) => {
-            const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
-            const price = listing.ListPrice || "N/A";
-            const city = listing.City || "Unknown City";
+            const addr = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
+            const priceVal = listing.ListPrice || "N/A";
+            const cityVal = listing.City || "Unknown City";
             const imageUrl =
               listing.Media && listing.Media.length > 0
                 ? listing.Media[0].MediaURL
                 : null;
             const key = `${(listing.ListingId || listing.ListingKey) ?? "listing"}-${index}`;
+
             return (
               <li key={key} className="border rounded overflow-hidden bg-white p-4">
                 <Link href={`/listing/${listing.ListingKey || listing.ListingId}`}>
@@ -168,7 +245,7 @@ export default function Home() {
                       {imageUrl ? (
                         <img
                           src={imageUrl}
-                          alt={address}
+                          alt={addr}
                           className="object-cover w-full h-full"
                         />
                       ) : (
@@ -176,9 +253,11 @@ export default function Home() {
                       )}
                     </div>
                     <h3 className="text-base font-semibold mb-1">
-                      {address || "No Address Provided"}
+                      {addr || "No Address Provided"}
                     </h3>
-                    <p className="text-sm mb-1">{city} — ${price}</p>
+                    <p className="text-sm mb-1">
+                      {cityVal} — ${priceVal}
+                    </p>
                     {listing.ListOfficeName && (
                       <p className="text-xs text-gray-600">{listing.ListOfficeName}</p>
                     )}
@@ -191,11 +270,12 @@ export default function Home() {
       ) : (
         !loading && (
           <p className="text-center">
-            {searchQuery.trim() ||
-            priceMin ||
-            priceMax ||
-            bedrooms ||
-            bathrooms
+            {(searchQuery.trim() ||
+              priceMin ||
+              priceMax ||
+              bedrooms ||
+              bathrooms ||
+              (searchType === "solds" && (addressForSold || mileageRadius)))
               ? "No listings found. Please adjust your search criteria."
               : "Please enter your search criteria above."}
           </p>
