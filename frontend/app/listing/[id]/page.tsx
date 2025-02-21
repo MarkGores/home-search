@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -91,10 +92,33 @@ export default function ListingDetail() {
   if (error) return <p>Error: {error}</p>;
   if (!listing) return <p>Listing not found</p>;
 
+  // Process key details
   const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
-  const price = listing.ListPrice || "N/A";
+  const price = listing.ListPrice ? `$${Number(listing.ListPrice).toLocaleString()}` : "N/A";
   const city = listing.City || "Unknown City";
+  const status = listing.StandardStatus || "Unknown Status";
+  const rawMLS = listing.ListingId || listing.ListingKey || "N/A";
+  // Remove the "NST" prefix (case-insensitive)
+  const mlsNumber = rawMLS !== "N/A" ? rawMLS.replace(/^NST/i, "") : "N/A";
+  const beds = listing.BedroomsTotal || "N/A";
+  const baths = listing.BathroomsTotalInteger || "N/A";
+  const sqFt = listing.LivingArea || "N/A";
+  const style = listing.PropertySubType || "N/A";
+  const remarks = listing.PublicRemarks || "No description available.";
   const photos = listing.Media || [];
+
+  // Additional details - add fields as available
+  const additionalDetails = [
+    { label: "MLS#", value: mlsNumber },
+    { label: "Status", value: status },
+    { label: "Bedrooms", value: beds },
+    { label: "Bathrooms", value: baths },
+    { label: "Living Area", value: sqFt },
+    { label: "Style", value: style },
+    { label: "Lot Size", value: listing.LotSizeArea ? `${listing.LotSizeArea} acres` : "N/A" },
+    { label: "Year Built", value: listing.YearBuilt || "N/A" },
+  ];
+
 
   return (
     <div className="p-5 font-sans">
@@ -154,21 +178,42 @@ export default function ListingDetail() {
         <p className="mt-4">No photos available</p>
       )}
 
-      {/* Additional Property Details */}
-      <div className="mt-4">
-        <h2 className="text-xl font-bold">Property Details</h2>
-        <ul className="list-disc pl-5">
-          {listing.BedroomsTotal && <li>{listing.BedroomsTotal} Bedrooms</li>}
-          {listing.BathroomsTotalInteger && <li>{listing.BathroomsTotalInteger} Bathrooms</li>}
-          {listing.LivingArea && <li>{listing.LivingArea} sq ft living area</li>}
-          {listing.LotSizeArea && <li>Lot Size: {listing.LotSizeArea} acres</li>}
-        </ul>
+      {/* Top Key Listing Details */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">{address || "No Address Provided"}</h1>
+        <p className="text-xl text-blue-600 font-semibold">{price}</p>
+        <p className="text-lg">{status}</p>
       </div>
 
-      <p className="mt-4">{listing.PublicRemarks || "No description available"}</p>
+      {/* Detail Grid */}
+      <div className="mb-6 grid grid-cols-2 gap-4">
+        {additionalDetails.map((detail, index) => (
+          <div key={index}>
+            <p className="font-bold">{detail.label}:</p>
+            <p>{detail.value}</p>
+          </div>
+        ))}
+      </div>
 
-      {/* Contact Me Button */}
-      <button 
+      {/* Description / Remarks */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">Description / Remarks</h2>
+        <p>{remarks}</p>
+      </div>
+
+      {/* Broker Reciprocity Statement */}
+      <div className="mb-6 flex items-center">
+        <img
+          src="/images/broker-reciprocity-logo.png"
+          alt="Broker Reciprocity Logo"
+          className="h-6 w-6 mr-2"
+        />
+        <p className="text-sm">
+          This listing courtesy of {listing.ListOfficeName || "Unknown Broker"}.
+        </p>
+      </div>
+{/* Contact Me Button */}
+     <button 
         onClick={() => setShowModal(true)}
         className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
       >
@@ -245,6 +290,63 @@ export default function ListingDetail() {
           </div>
         </div>
       )}
+      {/* Footer (Same as Main Page) */}
+      <footer className="bg-white border-t py-2 px-3 flex flex-col md:flex-row md:justify-between md:items-start text-sm mt-auto">
+        {/* Left: Branding & Agent Info */}
+        <div className="md:w-1/5 mb-2 md:mb-0 md:pr-4 flex flex-col items-center md:items-start">
+          <img
+            src="/images/remax-logo.png"
+            alt="RE/MAX Advantage Plus"
+            className="mb-2 h-12 object-contain"
+          />
+          <p className="font-bold">RE/MAX Advantage Plus - Savage</p>
+          <p>Mark Gores</p>
+          <p>Agent Licensed 20486494</p>
+          <p>Phone: 612-201-5447</p>
+        </div>
+        {/* Right: Scrollable Disclaimer */}
+        <div className="md:w-4/5 border rounded py-2 px-3 max-h-32 overflow-y-auto">
+          <p className="font-bold">MLS® Disclaimer</p>
+          <p className="flex items-center mt-1">
+            <img
+              src="/images/broker-reciprocity-logo.png"
+              alt="Broker Reciprocity Logo"
+              className="inline-block h-8 w-8 mr-2"
+            />
+            The data relating to real estate for sale on this web site comes in part from the
+            Broker Reciprocity Program of the Regional Multiple Listing Service of Minnesota, Inc. Real estate listings held by brokerage firms other than RE/MAX Advantage Plus - Savage are marked with the Broker Reciprocity logo or the Broker Reciprocity thumbnail logo (little black house) and detailed information about them includes the name of the listing brokers.
+          </p>
+          <p className="mt-2">
+            The broker providing these data believes them to be correct, but advises interested parties
+            to confirm them before relying on them in a purchase decision. © 2025 Regional Multiple Listing Service of Minnesota, Inc. All rights reserved.
+          </p>
+          <p className="mt-2">
+            By searching, you agree to the{" "}
+            <Link
+              href="/license"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              End User License Agreement
+            </Link>.
+          </p>
+          <p className="mt-2 font-bold">
+            Digital Millennium Copyright Act (DMCA) Notice
+          </p>
+          <p className="mt-1">
+            The Digital Millennium Copyright Act of 1998, 17 U.S.C. 512 (the "DMCA"), provides recourse
+            for copyright owners who believe that material appearing on the Internet infringes their rights
+            under U.S. copyright law. If you believe in good faith that any content or material made available
+            in connection with our website or services infringes your copyright, you (or your agent) may send
+            us a notice requesting that the content or material be removed, or access to it blocked. Notices
+            and counter-notices should be sent in writing by mail to Michael Bisping, Director, Customer
+            Relations, Regional Multiple Listing Service of Minnesota, Inc, 2550 University Avenue West,
+            Suite 259S Saint Paul, MN 55114 or by email to mbisping@northstarmls.com. Questions can be directed
+            by phone to 651-251-3200.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
