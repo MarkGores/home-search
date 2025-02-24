@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ListingCard from "../components/ListingCard";
+import Footer from "../components/Footer";
 
 type SearchType = "listings" | "solds";
 
@@ -188,118 +190,35 @@ export default function Home() {
         {loading && <p className="text-center">Loading listings...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
         {listings.length > 0 ? (
-  <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-    {listings.map((listing, index) => {
-      const addr = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
-      const priceVal = listing.ListPrice || "N/A";
-      const cityVal = listing.City || "Unknown City";
-      const imageUrl =
-        listing.Media && listing.Media.length > 0
-          ? listing.Media[0].MediaURL
-          : null;
-      const key = `${(listing.ListingId || listing.ListingKey) ?? "listing"}-${index}`;
-      return (
-        <li key={key} className="border rounded overflow-hidden bg-white p-4">
-          <Link href={`/listing/${listing.ListingKey || listing.ListingId}`}>
-            <div className="cursor-pointer">
-              <div className="h-32 w-full overflow-hidden flex justify-center items-center mb-2">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={addr}
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <p className="text-sm text-center">No image available</p>
-                )}
-              </div>
-              <h3 className="text-base font-semibold mb-1">
-                {addr || "No Address Provided"}
-              </h3>
-              <p className="text-sm mb-1">
-                {cityVal} — ${priceVal}
-              </p>
-              {listing.ListOfficeName && (
-                <div className="flex items-center">
-                  <img
-                    src="/images/broker-reciprocity-logo.png"
-                    alt="Broker Reciprocity Logo"
-                    className="h-6 w-6 mr-1"
-                  />
-                  <span className="text-xs text-gray-600">
-                    {listing.ListOfficeName}
-                  </span>
-                </div>
-              )}
-            </div>
-          </Link>
-        </li>
-      );
-    })}
-  </ul>
-) : (
-  !loading &&
-  (searchQuery.trim() ||
-    priceMin ||
-    priceMax ||
-    bedrooms ||
-    bathrooms ||
-    (searchType === "solds" && (addressForSold || mileageRadius))) && (
-    <p className="text-center">
-      No listings found. Please adjust your search criteria.
-    </p>
-  )
-)}
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {listings.map((listing, index) => {
+              const key = listing.ListingKey || listing.ListingId || index;
+              return (
+                <li key={key} className="bg-white border rounded p-4">
+                 
+                    <ListingCard listing={listing} />
+                  
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          !loading &&
+          (searchQuery.trim() ||
+            priceMin ||
+            priceMax ||
+            bedrooms ||
+            bathrooms ||
+            (searchType === "solds" && (addressForSold || mileageRadius))) && (
+            <p className="text-center">
+              No listings found. Please adjust your search criteria.
+            </p>
+          )
+        )}
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t py-2 px-3 flex flex-col md:flex-row md:justify-between md:items-start text-sm">
-        {/* Left: Branding & Agent Info */}
-        <div className="md:w-1/5 mb-2 md:mb-0 md:pr-4 flex flex-col items-center md:items-start">
-          <img
-            src="/images/remax-logo.png"
-            alt="RE/MAX Advantage Plus"
-            className="mb-2 h-12 object-contain"
-          />
-          <p className="font-bold">RE/MAX Advantage Plus - Savage</p>
-          <p>Mark Gores</p>
-          <p>Agent Licensed 20486494</p>
-          <p>Phone: 612-201-5447</p>
-        </div>
-
-        {/* Right: Scrollable Disclaimer */}
-        <div className="md:w-4/5 border rounded py-2 px-3 max-h-32 overflow-y-auto">
-          <p className="font-bold">MLS® Disclaimer</p>
-          <p className="flex items-center mt-1">
-            <img
-              src="/images/broker-reciprocity-logo.png"
-              alt="Broker Reciprocity Logo"
-              className="inline-block h-8 w-8 mr-2"
-            />
-            The data relating to real estate for sale on this web site comes in part from the Broker Reciprocity Program of the Regional Multiple Listing Service of Minnesota, Inc. Real estate listings held by brokerage firms other than RE/MAX Advantage Plus - Savage are marked with the Broker Reciprocity logo or the Broker Reciprocity thumbnail logo (little black house) and detailed information about them includes the name of the listing brokers.
-          </p>
-          <p className="mt-2">
-            The broker providing these data believes them to be correct, but advises interested parties to confirm them before relying on them in a purchase decision. © 2025 Regional Multiple Listing Service of Minnesota, Inc. All rights reserved.
-          </p>
-          <p className="mt-2">
-            By searching, you agree to the{" "}
-            <Link
-              href="/license"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
-              End User License Agreement
-            </Link>.
-          </p>
-          <p className="mt-2 font-bold">
-            Digital Millennium Copyright Act (DMCA) Notice
-          </p>
-          <p className="mt-1">
-            The Digital Millennium Copyright Act of 1998, 17 U.S.C. 512 (the "DMCA"), provides recourse for copyright owners who believe that material appearing on the Internet infringes their rights under U.S. copyright law. If you believe in good faith that any content or material made available in connection with our website or services infringes your copyright, you (or your agent) may send us a notice requesting that the content or material be removed, or access to it blocked. Notices and counter-notices should be sent in writing by mail to Michael Bisping, Director, Customer Relations, Regional Multiple Listing Service of Minnesota, Inc, 2550 University Avenue West, Suite 259S Saint Paul, MN 55114 or by email to mbisping@northstarmls.com. Questions can be directed by phone to 651-251-3200.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

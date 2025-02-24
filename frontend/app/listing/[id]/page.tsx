@@ -8,6 +8,7 @@ import { Thumbs, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import Footer from '../../../components/Footer';
 
 // Simple component to display the brokerage name
 function BrokerInfo({ brokerageName }: { brokerageName: string }) {
@@ -18,6 +19,10 @@ function BrokerInfo({ brokerageName }: { brokerageName: string }) {
   );
 }
 
+// Placeholder for the MLS GRID data upload timestamp.
+// Later, replace this with the actual dynamic timestamp.
+const lastDataUploadTimestamp = "2025-02-21 12:00 PM";
+
 export default function ListingDetail() {
   const { id } = useParams();
   const router = useRouter();
@@ -25,7 +30,7 @@ export default function ListingDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
-  
+
   // State for Contact Modal
   const [showModal, setShowModal] = useState(false);
   const [contactName, setContactName] = useState("");
@@ -54,7 +59,7 @@ export default function ListingDetail() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     // Gather property details to include with the contact submission
     const propertyDetails = {
       listingId: listing.ListingId || listing.ListingKey,
@@ -62,7 +67,7 @@ export default function ListingDetail() {
       city: listing.City || "Unknown City",
       price: listing.ListPrice || "N/A",
     };
-  
+
     try {
       const res = await fetch("http://localhost:3001/api/contact", {
         method: "POST",
@@ -73,7 +78,7 @@ export default function ListingDetail() {
           name: contactName,
           email: contactEmail,
           message: contactMessage,
-          property: propertyDetails, // <-- Added property details
+          property: propertyDetails,
         }),
       });
       const result = await res.json();
@@ -122,7 +127,6 @@ export default function ListingDetail() {
     { label: "Year Built", value: listing.YearBuilt || "N/A" },
   ];
 
-
   return (
     <div className="p-5 font-sans">
       <button onClick={() => router.back()} className="mb-4 text-blue-600 hover:underline">
@@ -131,7 +135,7 @@ export default function ListingDetail() {
       <h1 className="text-2xl font-bold">{address || "No Address Provided"}</h1>
       <p className="text-lg">{city} — ${price}</p>
       {listing.ListOfficeName && <BrokerInfo brokerageName={listing.ListOfficeName} />}
-      
+
       {/* Photo Carousel with Thumbnails */}
       {photos.length > 0 ? (
         <>
@@ -184,7 +188,7 @@ export default function ListingDetail() {
       {/* Top Key Listing Details */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{address || "No Address Provided"}</h1>
-        <p className="text-xl text-blue-600 font-semibold">{price}</p>
+        <p className="text-xl text-blue-600 font-semibold">${price}</p>
         <p className="text-lg">{status}</p>
       </div>
 
@@ -318,8 +322,9 @@ export default function ListingDetail() {
           This listing courtesy of {listing.ListOfficeName || "Unknown Broker"}.
         </p>
       </div>
-{/* Contact Me Button */}
-     <button 
+
+      {/* Contact Me Button */}
+      <button 
         onClick={() => setShowModal(true)}
         className="mt-2 mb-10 px-8 py-4 bg-green-600 text-white rounded hover:bg-green-700 transition"
       >
@@ -396,63 +401,25 @@ export default function ListingDetail() {
           </div>
         </div>
       )}
-      {/* Footer (Same as Main Page) */}
-      <footer className="bg-white border-t py-2 px-3 flex flex-col md:flex-row md:justify-between md:items-start text-sm mt-auto">
-        {/* Left: Branding & Agent Info */}
-        <div className="md:w-1/5 mb-2 md:mb-0 md:pr-4 flex flex-col items-center md:items-start">
+
+      {/* Disclaimer Block with Timestamp */}
+      <div className="mt-8 p-4 border-t border-gray-300 text-sm">
+        <div className="flex items-center mb-2">
           <img
-            src="/images/remax-logo.png"
-            alt="RE/MAX Advantage Plus"
-            className="mb-2 h-12 object-contain"
+            src="/images/northstar-logo.png"
+            alt="NorthstarMLS Logo"
+            className="h-6 mr-2"
           />
-          <p className="font-bold">RE/MAX Advantage Plus - Savage</p>
-          <p>Mark Gores</p>
-          <p>Agent Licensed 20486494</p>
-          <p>Phone: 612-201-5447</p>
+          <span>
+            Based on information submitted to the MLS GRID as of {lastDataUploadTimestamp}.
+          </span>
         </div>
-        {/* Right: Scrollable Disclaimer */}
-        <div className="md:w-4/5 border rounded py-2 px-3 max-h-32 overflow-y-auto">
-          <p className="font-bold">MLS® Disclaimer</p>
-          <p className="flex items-center mt-1">
-            <img
-              src="/images/broker-reciprocity-logo.png"
-              alt="Broker Reciprocity Logo"
-              className="inline-block h-8 w-8 mr-2"
-            />
-            The data relating to real estate for sale on this web site comes in part from the
-            Broker Reciprocity Program of the Regional Multiple Listing Service of Minnesota, Inc. Real estate listings held by brokerage firms other than RE/MAX Advantage Plus - Savage are marked with the Broker Reciprocity logo or the Broker Reciprocity thumbnail logo (little black house) and detailed information about them includes the name of the listing brokers.
-          </p>
-          <p className="mt-2">
-            The broker providing these data believes them to be correct, but advises interested parties
-            to confirm them before relying on them in a purchase decision. © 2025 Regional Multiple Listing Service of Minnesota, Inc. All rights reserved.
-          </p>
-          <p className="mt-2">
-            By searching, you agree to the{" "}
-            <Link
-              href="/license"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
-              End User License Agreement
-            </Link>.
-          </p>
-          <p className="mt-2 font-bold">
-            Digital Millennium Copyright Act (DMCA) Notice
-          </p>
-          <p className="mt-1">
-            The Digital Millennium Copyright Act of 1998, 17 U.S.C. 512 (the "DMCA"), provides recourse
-            for copyright owners who believe that material appearing on the Internet infringes their rights
-            under U.S. copyright law. If you believe in good faith that any content or material made available
-            in connection with our website or services infringes your copyright, you (or your agent) may send
-            us a notice requesting that the content or material be removed, or access to it blocked. Notices
-            and counter-notices should be sent in writing by mail to Michael Bisping, Director, Customer
-            Relations, Regional Multiple Listing Service of Minnesota, Inc, 2550 University Avenue West,
-            Suite 259S Saint Paul, MN 55114 or by email to mbisping@northstarmls.com. Questions can be directed
-            by phone to 651-251-3200.
-          </p>
-        </div>
-      </footer>
+        <p>
+          All data is obtained from various sources and may not have been verified by broker or MLS GRID. Supplied Open House Information is subject to change without notice. All information should be independently reviewed and verified for accuracy. Properties may or may not be listed by the office/agent presenting the information. Some IDX listings have been excluded from this website.
+        </p>
+      </div>
+
+      <Footer />
     </div>
   );
 }
