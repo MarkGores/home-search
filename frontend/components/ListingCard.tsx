@@ -5,14 +5,12 @@ import Link from "next/link";
 import { Listing } from "../types/Listing";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css"; // Basic Swiper styles
-// If you need additional Swiper modules (navigation, pagination, etc.), import them here:
-// import { Navigation, Pagination } from "swiper/modules";
 
 interface ListingCardProps {
   listing: Listing;
 }
 
-// Simple inline Camera Icon (from Heroicons) for the photo count overlay
+// Simple inline Camera Icon for the photo count overlay
 function CameraIcon() {
   return (
     <svg
@@ -35,42 +33,28 @@ function CameraIcon() {
 const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Basic field parsing
-  const price = listing.ListPrice
-    ? `$${listing.ListPrice.toLocaleString()}`
-    : "N/A";
-  const status = listing.StandardStatus || "Active";
+  // Use ListingId for routing if it exists; otherwise fall back to ListingKey.
+  const routeParam = listing.ListingId || listing.ListingKey;
+  // For display, show ListingId (if available) without "NST"; otherwise show "N/A"
+  const displayMLS = listing.ListingId ? listing.ListingId.replace(/^NST/i, "") : "N/A";
 
-  // Remove any "NST" prefix from the MLS number for both display and routing
-  const rawMLS = listing.ListingId || listing.ListingKey || "N/A";
-  const mlsNumber = rawMLS.replace(/^NST/i, "");
-
-  // We'll use the stripped MLS number as the route param if it's not empty
-  const routeParam = mlsNumber !== "N/A" ? mlsNumber : rawMLS;
-
-  const address = [
-    listing.StreetNumber,
-    listing.StreetName,
-    listing.StreetSuffix,
-  ]
+  // Build the address from available fields.
+  const address = [listing.StreetNumber, listing.StreetName, listing.StreetSuffix]
     .filter(Boolean)
     .join(" ");
-  const cityStateZip = [
-    listing.City,
-    listing.StateOrProvince,
-    listing.PostalCode,
-  ]
+  const cityStateZip = [listing.City, listing.StateOrProvince, listing.PostalCode]
     .filter(Boolean)
     .join(", ");
 
+  // Parse other listing details.
+  const price = listing.ListPrice ? `$${listing.ListPrice.toLocaleString()}` : "N/A";
+  const status = listing.StandardStatus || "Active";
   const beds = listing.BedroomsTotal ?? "N/A";
   const baths = listing.BathroomsTotalInteger ?? "N/A";
   const sqFt = listing.LivingArea ?? "N/A";
   const propertyType = listing.PropertySubType || "N/A";
   const brokerName = listing.ListOfficeName || "N/A";
   const photoCount = listing.Media?.length || 0;
-
-  // (Optional) handle singular vs. plural bed/bath text
   const bedLabel = beds === 1 ? "bed" : "beds";
   const bathLabel = baths === 1 ? "bath" : "baths";
 
@@ -80,7 +64,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
       {photoCount > 0 ? (
         <div className="relative">
           <Swiper
-            // Add modules like Navigation, Pagination, etc. if you want
             onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
             spaceBetween={0}
             slidesPerView={1}
@@ -96,8 +79,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               </SwiperSlide>
             ))}
           </Swiper>
-
-          {/* Photo Count Overlay */}
           {photoCount > 1 && (
             <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
               <CameraIcon /> {currentSlide + 1} of {photoCount}
@@ -105,17 +86,16 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           )}
         </div>
       ) : (
-        // Fallback if no photos
         <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
           <span className="text-gray-500 text-sm">No photos available</span>
         </div>
       )}
 
-      {/* Property Info */}
+      {/* Property Information */}
       <div className="mt-3">
         <p className="text-xl font-bold">{price}</p>
         <p className="text-sm text-gray-600">
-          {status} | MLS# {mlsNumber}
+          {status} | MLS# {displayMLS}
         </p>
         <p className="text-sm mt-1">
           {address}
@@ -126,7 +106,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           {beds} {bedLabel}, {baths} {bathLabel}, {sqFt} sq ft | {propertyType}
         </p>
 
-        {/* Full Details Link */}
+        {/* Full Details Link using the chosen ID */}
         <Link
           href={`/listing/${routeParam}`}
           className="text-blue-600 hover:underline text-sm mt-2 inline-block"

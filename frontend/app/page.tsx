@@ -1,81 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import ListingCard from "../components/ListingCard";
 import Footer from "../components/Footer";
-
-type SearchType = "listings" | "solds";
+import SearchForm, { SearchCriteria } from "../components/SearchForm";
 
 export default function Home() {
-  // Track search type state: Listings vs. Solds
-  const [searchType, setSearchType] = useState<SearchType>("listings");
-
-  // Main search state and advanced search fields
-  const [searchQuery, setSearchQuery] = useState("");
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [bathrooms, setBathrooms] = useState("");
-
-  // Additional fields for sold search
-  const [addressForSold, setAddressForSold] = useState("");
-  const [mileageRadius, setMileageRadius] = useState("");
-
-  // Listings state and UI feedback
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Perform the search locally (placeholder for now)
-  const handleSearch = async () => {
-    if (
-      !searchQuery.trim() &&
-      !priceMin.trim() &&
-      !priceMax.trim() &&
-      !bedrooms.trim() &&
-      !bathrooms.trim() &&
-      (searchType === "solds" && !addressForSold.trim() && !mileageRadius.trim())
-    ) {
-      return;
-    }
+  // Fetch all listings from the backend and filter by search criteria
+  const handleSearch = async (criteria: SearchCriteria) => {
     setLoading(true);
     setError(null);
     try {
-      if (searchType === "listings") {
-        const res = await fetch("http://localhost:3001/api/listings");
-        if (!res.ok) throw new Error("Network response was not ok");
-        const data = await res.json();
-        const filtered = data.filter((listing: any) => {
-          let matchesBasic = true;
-          if (searchQuery.trim()) {
-            matchesBasic =
-              (listing.City &&
-                listing.City.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      const res = await fetch("http://localhost:3001/api/listings");
+      if (!res.ok) throw new Error("Network response was not ok");
+      const data = await res.json();
+
+      // Filter the data based on criteria provided
+      const filtered = data.filter((listing: any) => {
+        let matches = true;
+        // Search query filtering (checks City or StreetName)
+        if (criteria.searchQuery) {
+          const query = criteria.searchQuery.toLowerCase();
+          matches =
+            matches &&
+            ((listing.City && listing.City.toLowerCase().includes(query)) ||
               (listing.StreetName &&
-                listing.StreetName.toLowerCase().includes(searchQuery.toLowerCase()));
-          }
-          let matchesAdvanced = true;
-          if (priceMin.trim()) {
-            matchesAdvanced = matchesAdvanced && listing.ListPrice >= Number(priceMin);
-          }
-          if (priceMax.trim()) {
-            matchesAdvanced = matchesAdvanced && listing.ListPrice <= Number(priceMax);
-          }
-          if (bedrooms.trim()) {
-            matchesAdvanced = matchesAdvanced && listing.BedroomsTotal >= Number(bedrooms);
-          }
-          if (bathrooms.trim()) {
-            matchesAdvanced =
-              matchesAdvanced && listing.BathroomsTotalInteger >= Number(bathrooms);
-          }
-          return matchesBasic && matchesAdvanced;
-        });
-        setListings(filtered);
-      } else if (searchType === "solds") {
-        // For solds, since we don't have live data, we'll return an empty array (or a placeholder)
-        setListings([]);
-      }
+                listing.StreetName.toLowerCase().includes(query)));
+        }
+        // Price filtering
+        if (criteria.priceMin) {
+          matches = matches && listing.ListPrice >= Number(criteria.priceMin);
+        }
+        if (criteria.priceMax) {
+          matches = matches && listing.ListPrice <= Number(criteria.priceMax);
+        }
+        // Bedrooms filtering
+        if (criteria.bedrooms) {
+          matches = matches && listing.BedroomsTotal >= Number(criteria.bedrooms);
+        }
+        // Bathrooms filtering
+        if (criteria.bathrooms) {
+          matches =
+            matches && listing.BathroomsTotalInteger >= Number(criteria.bathrooms);
+        }
+        return matches;
+      });
+      setListings(filtered);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -83,133 +57,49 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch();
-  };
-
   return (
-    <div className="font-sans min-h-screen flex flex-col">
-      {/* Main content wrapper */}
-      <div className="p-5 flex-1">
-        {/* Search Type Toggle */}
-        <div className="flex justify-center space-x-4 mb-4">
-          <button
-            onClick={() => setSearchType("listings")}
-            className={`px-4 py-2 rounded ${
-              searchType === "listings" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-            }`}
+    <div className="flex flex-col min-h-screen font-sans">
+      {/* Hero Section */}
+      <div
+        className="relative w-full h-[60vh] bg-center bg-cover flex items-center justify-center"
+        style={{ backgroundImage: "url('/images/hero.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black bg-opacity-70"></div>
+        <div className="relative z-10 text-center text-white p-4 max-w-2xl">
+          <h1
+            className="text-4xl md:text-5xl font-bold leading-tight"
+            style={{ textShadow: "2px 2px 6px rgba(0,0,0,0.7)" }}
           >
-            Listings
-          </button>
-          <button
-            onClick={() => setSearchType("solds")}
-            className={`px-4 py-2 rounded ${
-              searchType === "solds" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-            }`}
+            Discover Your Next Home — No Sign-Ups, No Spam
+          </h1>
+          <p
+            className="mt-4 text-lg md:text-xl"
+            style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
           >
-            Solds
-          </button>
+            Transparent MLS data, real-time listings, and honest property info.
+          </p>
+          {/* SearchForm Component */}
+          <SearchForm onSearch={handleSearch} />
         </div>
+      </div>
 
-        {/* Hero Section and Search Form */}
-        <header className="text-center mb-10">
-          <h1 className="text-3xl font-bold">Welcome to ListingsAndSolds.com</h1>
-          <p className="mt-2 text-lg">Search for properties and comparable solds.</p>
-          <form onSubmit={handleSubmit} className="mt-4 flex flex-col items-center space-y-4">
-            <div className="flex flex-col sm:flex-row sm:space-x-3">
-              <input
-                type="text"
-                placeholder="Enter city or street..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {searchType === "solds" && (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Address for Sold Search..."
-                    value={addressForSold}
-                    onChange={(e) => setAddressForSold(e.target.value)}
-                    className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 sm:mt-0"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Mileage Radius (miles)"
-                    value={mileageRadius}
-                    onChange={(e) => setMileageRadius(e.target.value)}
-                    className="p-3 w-72 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 sm:mt-0"
-                  />
-                </>
-              )}
-            </div>
-
-            {/* Advanced Search Options */}
-            <div className="flex flex-wrap justify-center gap-3">
-              <input
-                type="number"
-                placeholder="Min Price"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Max Price"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Bedrooms"
-                value={bedrooms}
-                onChange={(e) => setBedrooms(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Bathrooms"
-                value={bathrooms}
-                onChange={(e) => setBathrooms(e.target.value)}
-                className="p-2 w-32 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="mt-4 px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              Search
-            </button>
-          </form>
-        </header>
-
-        {/* Search Results */}
+      {/* Main Content: Search Results */}
+      <div className="flex-1 p-5">
         {loading && <p className="text-center">Loading listings...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
         {listings.length > 0 ? (
-          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <ul className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(325px,1fr))]">
             {listings.map((listing, index) => {
-              const key = listing.ListingKey || listing.ListingId || index;
+              const key = `${listing.ListingKey || listing.ListingId}-${index}`;
               return (
                 <li key={key} className="bg-white border rounded p-4">
-                 
-                    <ListingCard listing={listing} />
-                  
+                  <ListingCard listing={listing} />
                 </li>
               );
             })}
           </ul>
         ) : (
-          !loading &&
-          (searchQuery.trim() ||
-            priceMin ||
-            priceMax ||
-            bedrooms ||
-            bathrooms ||
-            (searchType === "solds" && (addressForSold || mileageRadius))) && (
+          !loading && (
             <p className="text-center">
               No listings found. Please adjust your search criteria.
             </p>

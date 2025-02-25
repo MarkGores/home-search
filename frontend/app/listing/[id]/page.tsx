@@ -8,50 +8,56 @@ import { Thumbs, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import Footer from '../../../components/Footer';
+import Footer from "../../../components/Footer";
 
-// Simple component to display the brokerage name
 function BrokerInfo({ brokerageName }: { brokerageName: string }) {
   return (
-    <div className="mt-2 font-bold text-lg text-gray-800">
-      {brokerageName}
-    </div>
+    <div className="mt-2 font-bold text-lg text-gray-800">{brokerageName}</div>
   );
 }
 
-// Placeholder for the MLS GRID data upload timestamp.
-// Later, replace this with the actual dynamic timestamp.
 const lastDataUploadTimestamp = "2025-02-21 12:00 PM";
 
 export default function ListingDetail() {
-  const { id } = useParams();
+  const { id } = useParams(); // id should now be something like "NST7026453"
   const router = useRouter();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
 
-  // State for Contact Modal
+  // Contact Modal state
   const [showModal, setShowModal] = useState(false);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
 
-  // State for toggling additional listing details
   const [showAllDetails, setShowAllDetails] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/listings/${id}`)
+    console.log("ListingDetail useEffect triggered. id =", id);
+    if (!id) {
+      setError("No listing id provided.");
+      setLoading(false);
+      return;
+    }
+    // Use the id directly
+    const url = `http://localhost:3001/api/listings/${id}`;
+    console.log("Fetching listing with url =", url);
+    fetch(url)
       .then((res) => {
-        if (!res.ok) throw new Error("Error fetching listing details");
+        if (!res.ok) {
+          throw new Error("Error fetching listing details");
+        }
         return res.json();
       })
       .then((data) => {
+        console.log("Listing data fetched:", data);
         setListing(data);
         setLoading(false);
       })
       .catch((err: any) => {
-        console.error("Error fetching listing:", err);
+        console.error("Error in fetch:", err);
         setError(err.message);
         setLoading(false);
       });
@@ -59,21 +65,16 @@ export default function ListingDetail() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Gather property details to include with the contact submission
     const propertyDetails = {
       listingId: listing.ListingId || listing.ListingKey,
       address: `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim(),
       city: listing.City || "Unknown City",
       price: listing.ListPrice || "N/A",
     };
-
     try {
       const res = await fetch("http://localhost:3001/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: contactName,
           email: contactEmail,
@@ -100,13 +101,11 @@ export default function ListingDetail() {
   if (error) return <p>Error: {error}</p>;
   if (!listing) return <p>Listing not found</p>;
 
-  // Process key details
   const address = `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim();
   const price = listing.ListPrice ? `${Number(listing.ListPrice).toLocaleString()}` : "N/A";
   const city = listing.City || "Unknown City";
   const status = listing.StandardStatus || "Unknown Status";
   const rawMLS = listing.ListingId || listing.ListingKey || "N/A";
-  // Remove the "NST" prefix (case-insensitive)
   const mlsNumber = rawMLS !== "N/A" ? rawMLS.replace(/^NST/i, "") : "N/A";
   const beds = listing.BedroomsTotal || "N/A";
   const baths = listing.BathroomsTotalInteger || "N/A";
@@ -115,7 +114,6 @@ export default function ListingDetail() {
   const remarks = listing.PublicRemarks || "No description available.";
   const photos = listing.Media || [];
 
-  // Additional details - add fields as available
   const additionalDetails = [
     { label: "MLS#", value: mlsNumber },
     { label: "Status", value: status },
@@ -206,7 +204,7 @@ export default function ListingDetail() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Description / Remarks</h2>
         <p>{remarks}</p>
-        <a 
+        <a
           onClick={() => setShowAllDetails(!showAllDetails)}
           className="text-blue-600 underline cursor-pointer mt-2 block"
         >
@@ -334,14 +332,12 @@ export default function ListingDetail() {
       {/* Contact Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          {/* Modal backdrop */}
           <div 
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setShowModal(false)}
           ></div>
-          {/* Modal content */}
           <div className="relative bg-white p-6 rounded shadow-lg max-w-md w-full z-10">
-            <h2 className="text-xl font-bold mb-4">Contact Me</h2>
+            <h2 className="text-xl font-bold mb-4">Contact Mark</h2>
             <form onSubmit={handleContactSubmit}>
               <div className="mb-3">
                 <label className="block text-sm font-medium mb-1" htmlFor="name">

@@ -6,8 +6,13 @@ exports.getAllListings = (req, res) => {
 };
 
 exports.getListingById = (req, res) => {
-  const id = req.params.id;
-  const listing = listingsData.find((item) => item.ListingKey === id);
+  const id = req.params.id.trim(); // Ensure no extra spaces
+  const listing = listingsData.find((item) => {
+    // Trim values in case there is extra whitespace in the JSON
+    const key = item.ListingKey ? item.ListingKey.trim() : "";
+    const listingId = item.ListingId ? item.ListingId.trim() : "";
+    return key === id || listingId === id;
+  });
   if (listing) {
     res.json(listing);
   } else {
