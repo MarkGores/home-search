@@ -22,7 +22,8 @@ export default function Home() {
       // Filter the data based on criteria provided
       const filtered = data.filter((listing: any) => {
         let matches = true;
-        // Search query filtering (checks City or StreetName)
+
+        // 1. Search query filtering (checks City or StreetName)
         if (criteria.searchQuery) {
           const query = criteria.searchQuery.toLowerCase();
           matches =
@@ -31,24 +32,59 @@ export default function Home() {
               (listing.StreetName &&
                 listing.StreetName.toLowerCase().includes(query)));
         }
-        // Price filtering
+
+        // 2. Price filtering
         if (criteria.priceMin) {
           matches = matches && listing.ListPrice >= Number(criteria.priceMin);
         }
         if (criteria.priceMax) {
           matches = matches && listing.ListPrice <= Number(criteria.priceMax);
         }
-        // Bedrooms filtering
-        if (criteria.bedrooms) {
-          matches = matches && listing.BedroomsTotal >= Number(criteria.bedrooms);
-        }
-        // Bathrooms filtering
-        if (criteria.bathrooms) {
+
+        // 3. Bedrooms range filtering
+        if (criteria.bedroomsMin) {
           matches =
-            matches && listing.BathroomsTotalInteger >= Number(criteria.bathrooms);
+            matches && listing.BedroomsTotal >= Number(criteria.bedroomsMin);
         }
+        if (criteria.bedroomsMax) {
+          matches =
+            matches && listing.BedroomsTotal <= Number(criteria.bedroomsMax);
+        }
+
+        // 4. Bathrooms range filtering
+        if (criteria.bathroomsMin) {
+          matches =
+            matches &&
+            listing.BathroomsTotalInteger >= Number(criteria.bathroomsMin);
+        }
+        if (criteria.bathroomsMax) {
+          matches =
+            matches &&
+            listing.BathroomsTotalInteger <= Number(criteria.bathroomsMax);
+        }
+
+        // 5. Year Built (min)
+        if (criteria.yearBuilt) {
+          // If your data has a YearBuilt field, ensure it’s numeric
+          matches =
+            matches &&
+            listing.YearBuilt &&
+            listing.YearBuilt >= Number(criteria.yearBuilt);
+        }
+
+        // 6. Property Type
+        if (criteria.propertyType) {
+          // Compare in lowercase to allow partial matches
+          const propType = criteria.propertyType.toLowerCase();
+          matches =
+            matches &&
+            listing.PropertySubType &&
+            listing.PropertySubType.toLowerCase().includes(propType);
+        }
+
         return matches;
       });
+
       setListings(filtered);
     } catch (err: any) {
       setError(err.message);
