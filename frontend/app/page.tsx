@@ -19,11 +19,10 @@ export default function Home() {
       if (!res.ok) throw new Error("Network response was not ok");
       const data = await res.json();
 
-      // Filter the data based on criteria provided
       const filtered = data.filter((listing: any) => {
         let matches = true;
 
-        // 1. Search query filtering (checks City or StreetName)
+        // 1. Search query filtering (City or StreetName)
         if (criteria.searchQuery) {
           const query = criteria.searchQuery.toLowerCase();
           matches =
@@ -43,43 +42,226 @@ export default function Home() {
 
         // 3. Bedrooms range filtering
         if (criteria.bedroomsMin) {
-          matches =
-            matches && listing.BedroomsTotal >= Number(criteria.bedroomsMin);
+          matches = matches && listing.BedroomsTotal >= Number(criteria.bedroomsMin);
         }
         if (criteria.bedroomsMax) {
-          matches =
-            matches && listing.BedroomsTotal <= Number(criteria.bedroomsMax);
+          matches = matches && listing.BedroomsTotal <= Number(criteria.bedroomsMax);
         }
 
         // 4. Bathrooms range filtering
         if (criteria.bathroomsMin) {
           matches =
-            matches &&
-            listing.BathroomsTotalInteger >= Number(criteria.bathroomsMin);
+            matches && listing.BathroomsTotalInteger >= Number(criteria.bathroomsMin);
         }
         if (criteria.bathroomsMax) {
           matches =
-            matches &&
-            listing.BathroomsTotalInteger <= Number(criteria.bathroomsMax);
+            matches && listing.BathroomsTotalInteger <= Number(criteria.bathroomsMax);
         }
 
-        // 5. Year Built (min)
+        // 5. Year Built filtering
         if (criteria.yearBuilt) {
-          // If your data has a YearBuilt field, ensure it’s numeric
           matches =
             matches &&
             listing.YearBuilt &&
             listing.YearBuilt >= Number(criteria.yearBuilt);
         }
 
-        // 6. Property Type
+        // 6. Property Type filtering
         if (criteria.propertyType) {
-          // Compare in lowercase to allow partial matches
-          const propType = criteria.propertyType.toLowerCase();
+          const typeQuery = criteria.propertyType.toLowerCase();
+          matches =
+            matches &&
+            listing.PropertyType &&
+            listing.PropertyType.toLowerCase().includes(typeQuery);
+        }
+
+        // 7. Living Area filtering (in square feet)
+        if (criteria.livingAreaMin) {
+          matches =
+            matches &&
+            listing.LivingArea &&
+            listing.LivingArea >= Number(criteria.livingAreaMin);
+        }
+        if (criteria.livingAreaMax) {
+          matches =
+            matches &&
+            listing.LivingArea &&
+            listing.LivingArea <= Number(criteria.livingAreaMax);
+        }
+
+        // 8. Lot Size filtering (unit-based)
+        if (criteria.lotSizeMin) {
+          if (criteria.lotSizeUnit === "sqft") {
+            matches =
+              matches &&
+              listing.LotSizeSquareFeet &&
+              Number(listing.LotSizeSquareFeet) >= Number(criteria.lotSizeMin);
+          } else {
+            matches =
+              matches &&
+              listing.LotSizeArea &&
+              Number(listing.LotSizeArea) >= Number(criteria.lotSizeMin);
+          }
+        }
+        if (criteria.lotSizeMax) {
+          if (criteria.lotSizeUnit === "sqft") {
+            matches =
+              matches &&
+              listing.LotSizeSquareFeet &&
+              Number(listing.LotSizeSquareFeet) <= Number(criteria.lotSizeMax);
+          } else {
+            matches =
+              matches &&
+              listing.LotSizeArea &&
+              Number(listing.LotSizeArea) <= Number(criteria.lotSizeMax);
+          }
+        }
+
+        // 9. Days on Market filtering
+        if (criteria.daysOnMarketMin) {
+          matches =
+            matches &&
+            listing.DaysOnMarket &&
+            listing.DaysOnMarket >= Number(criteria.daysOnMarketMin);
+        }
+        if (criteria.daysOnMarketMax) {
+          matches =
+            matches &&
+            listing.DaysOnMarket &&
+            listing.DaysOnMarket <= Number(criteria.daysOnMarketMax);
+        }
+
+        // 10. Property Sub-Type filtering
+        if (criteria.propertySubType) {
+          const subTypeQuery = criteria.propertySubType.toLowerCase();
           matches =
             matches &&
             listing.PropertySubType &&
-            listing.PropertySubType.toLowerCase().includes(propType);
+            listing.PropertySubType.toLowerCase().includes(subTypeQuery);
+        }
+
+        // 11. County filtering
+        if (criteria.county) {
+          const countyQuery = criteria.county.toLowerCase();
+          matches =
+            matches &&
+            listing.CountyOrParish &&
+            listing.CountyOrParish.toLowerCase().includes(countyQuery);
+        }
+
+        // 12. Postal Code filtering
+        if (criteria.postalCode) {
+          matches =
+            matches &&
+            listing.PostalCode &&
+            listing.PostalCode.toString().includes(criteria.postalCode);
+        }
+
+        // 13. Amenities filtering (from NST_AmenitiesUnit, comma-separated)
+        if (criteria.amenities) {
+          const desiredAmenities = criteria.amenities
+            .split(",")
+            .map((s) => s.trim().toLowerCase());
+          if (listing.NST_AmenitiesUnit) {
+            const listingAmenities = listing.NST_AmenitiesUnit.toLowerCase();
+            desiredAmenities.forEach((amenity) => {
+              matches = matches && listingAmenities.includes(amenity);
+            });
+          } else {
+            matches = false;
+          }
+        }
+
+        // 14. Waterfront filtering
+        if (criteria.waterfrontOnly) {
+          matches = matches && listing.WaterfrontYN === true;
+        }
+
+        // 15. Exclude Association (HOA) filtering
+        if (criteria.noAssociation) {
+          matches = matches && listing.AssociationYN === false;
+        }
+
+        // 16. Exclude Land Lease filtering
+        if (criteria.noLandLease) {
+          matches = matches && listing.LandLeaseYN === false;
+        }
+
+        // 17. Appliances filtering
+        if (criteria.appliances) {
+          const desiredAppliances = criteria.appliances
+            .split(",")
+            .map((s) => s.trim().toLowerCase());
+          if (Array.isArray(listing.Appliances)) {
+            desiredAppliances.forEach((app) => {
+              matches =
+                matches &&
+                listing.Appliances.some(
+                  (a: string) => a.toLowerCase().includes(app)
+                );
+            });
+          } else {
+            matches = false;
+          }
+        }
+
+        // 18. Cooling filtering
+        if (criteria.cooling) {
+          const coolQuery = criteria.cooling.toLowerCase();
+          if (Array.isArray(listing.Cooling)) {
+            matches =
+              matches &&
+              listing.Cooling.some((c: string) => c.toLowerCase().includes(coolQuery));
+          } else {
+            matches = false;
+          }
+        }
+
+        // 19. Heating filtering
+        if (criteria.heating) {
+          const heatQuery = criteria.heating.toLowerCase();
+          if (Array.isArray(listing.Heating)) {
+            matches =
+              matches &&
+              listing.Heating.some((h: string) => h.toLowerCase().includes(heatQuery));
+          } else {
+            matches = false;
+          }
+        }
+
+        // 20. Garage Spaces filtering
+        if (criteria.garageSpaces) {
+          matches =
+            matches &&
+            listing.GarageSpaces &&
+            listing.GarageSpaces >= Number(criteria.garageSpaces);
+        }
+
+        // 21. Lot Features filtering
+        if (criteria.lotFeatures) {
+          const desiredFeatures = criteria.lotFeatures
+            .split(",")
+            .map((s) => s.trim().toLowerCase());
+          if (Array.isArray(listing.LotFeatures)) {
+            desiredFeatures.forEach((feat) => {
+              matches =
+                matches &&
+                listing.LotFeatures.some(
+                  (f: string) => f.toLowerCase().includes(feat)
+                );
+            });
+          } else {
+            matches = false;
+          }
+        }
+
+        // 22. Public Remarks text search
+        if (criteria.remarksQuery) {
+          const remarksQuery = criteria.remarksQuery.toLowerCase();
+          matches =
+            matches &&
+            listing.PublicRemarks &&
+            listing.PublicRemarks.toLowerCase().includes(remarksQuery);
         }
 
         return matches;
@@ -94,14 +276,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen font-sans">
+    <div className="flex flex-col min-h-[125vh] font-sans">
       {/* Hero Section */}
       <div
-        className="relative w-full h-[60vh] bg-center bg-cover flex items-center justify-center"
+        className="relative w-full min-h-[90vh] overflow-y-auto bg-center bg-cover flex items-center justify-center"
         style={{ backgroundImage: "url('/images/hero.jpg')" }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-70"></div>
-        <div className="relative z-10 text-center text-white p-4 max-w-2xl">
+        <div className="relative z-10 text-center text-white p-4 max-w-6xl mx-auto">
           <h1
             className="text-4xl md:text-5xl font-bold leading-tight"
             style={{ textShadow: "2px 2px 6px rgba(0,0,0,0.7)" }}
