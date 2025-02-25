@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
-// Updated SearchCriteria type
 export type SearchCriteria = {
   // Basic
   searchQuery: string;
@@ -39,11 +39,7 @@ export type SearchCriteria = {
   remarksQuery?: string;
 };
 
-interface SearchFormProps {
-  onSearch: (criteria: SearchCriteria) => void;
-}
-
-const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
+const SearchForm: React.FC = () => {
   // BASIC
   const [searchQuery, setSearchQuery] = useState("");
   const [priceMin, setPriceMin] = useState("");
@@ -86,43 +82,46 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const [showLocation, setShowLocation] = useState(false);
   const [showFeatures, setShowFeatures] = useState(false);
 
+  const router = useRouter();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch({
-      // BASIC
-      searchQuery,
-      priceMin,
-      priceMax,
-      bedroomsMin,
-      bedroomsMax,
-      bathroomsMin,
-      bathroomsMax,
-      // PROPERTY INFO
-      propertyType,
-      propertySubType,
-      yearBuilt,
-      livingAreaMin,
-      livingAreaMax,
-      lotSizeMin,
-      lotSizeMax,
-      lotSizeUnit,
-      daysOnMarketMin,
-      daysOnMarketMax,
-      // LOCATION
-      county,
-      postalCode,
-      waterfrontOnly,
-      // FEATURES
-      amenities,
-      noAssociation,
-      noLandLease,
-      appliances,
-      cooling,
-      heating,
-      garageSpaces,
-      lotFeatures,
-      remarksQuery,
-    });
+    const params = new URLSearchParams();
+
+    if (searchQuery) params.set("searchQuery", searchQuery);
+    if (priceMin) params.set("priceMin", priceMin);
+    if (priceMax) params.set("priceMax", priceMax);
+    if (bedroomsMin) params.set("bedroomsMin", bedroomsMin);
+    if (bedroomsMax) params.set("bedroomsMax", bedroomsMax);
+    if (bathroomsMin) params.set("bathroomsMin", bathroomsMin);
+    if (bathroomsMax) params.set("bathroomsMax", bathroomsMax);
+
+    if (propertyType) params.set("propertyType", propertyType);
+    if (propertySubType) params.set("propertySubType", propertySubType);
+    if (yearBuilt) params.set("yearBuilt", yearBuilt);
+    if (livingAreaMin) params.set("livingAreaMin", livingAreaMin);
+    if (livingAreaMax) params.set("livingAreaMax", livingAreaMax);
+    if (lotSizeMin) params.set("lotSizeMin", lotSizeMin);
+    if (lotSizeMax) params.set("lotSizeMax", lotSizeMax);
+    params.set("lotSizeUnit", lotSizeUnit);
+    if (daysOnMarketMin) params.set("daysOnMarketMin", daysOnMarketMin);
+    if (daysOnMarketMax) params.set("daysOnMarketMax", daysOnMarketMax);
+
+    if (county) params.set("county", county);
+    if (postalCode) params.set("postalCode", postalCode);
+    if (waterfrontOnly) params.set("waterfrontOnly", "true");
+
+    if (amenities) params.set("amenities", amenities);
+    if (noAssociation) params.set("noAssociation", "true");
+    if (noLandLease) params.set("noLandLease", "true");
+    if (appliances) params.set("appliances", appliances);
+    if (cooling) params.set("cooling", cooling);
+    if (heating) params.set("heating", heating);
+    if (garageSpaces) params.set("garageSpaces", garageSpaces);
+    if (lotFeatures) params.set("lotFeatures", lotFeatures);
+    if (remarksQuery) params.set("remarksQuery", remarksQuery);
+
+    router.push(`/search?${params.toString()}`);
   };
 
   return (
@@ -146,18 +145,18 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         />
       </div>
 
-      {/* PRICE + BEDS + BATHS */}
+      {/* PRICE, BEDS & BATHS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <input
           type="number"
-          placeholder="Min Price (e.g. 100000)"
+          placeholder="Min Price (e.g., 100000)"
           value={priceMin}
           onChange={(e) => setPriceMin(e.target.value)}
           className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
         />
         <input
           type="number"
-          placeholder="Max Price (e.g. 500000)"
+          placeholder="Max Price (e.g., 500000)"
           value={priceMax}
           onChange={(e) => setPriceMax(e.target.value)}
           className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -192,7 +191,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         />
       </div>
 
-      {/* TOGGLES FOR COLLAPSIBLE SECTIONS */}
+      {/* COLLAPSIBLE SECTION TOGGLES */}
       <div className="space-x-4 text-center mb-4">
         <button
           type="button"
@@ -222,7 +221,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         <div className="border border-gray-300 rounded p-4 mb-4">
           <h3 className="text-lg font-bold mb-2">Property Info</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Property Type dropdown (example) */}
             <div>
               <label className="block mb-1 text-gray-700 font-medium">
                 Property Type
@@ -257,7 +255,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 1990"
+                placeholder="e.g., 1990"
                 value={yearBuilt}
                 onChange={(e) => setYearBuilt(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -269,7 +267,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 1000"
+                placeholder="e.g., 1000"
                 value={livingAreaMin}
                 onChange={(e) => setLivingAreaMin(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -281,13 +279,12 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 3000"
+                placeholder="e.g., 3000"
                 value={livingAreaMax}
                 onChange={(e) => setLivingAreaMax(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
               />
             </div>
-            {/* Lot Size with Unit selection */}
             <div>
               <label className="block mb-1 text-gray-700 font-medium">
                 Lot Size (Min)
@@ -295,7 +292,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               <div className="flex space-x-2">
                 <input
                   type="number"
-                  placeholder="e.g. 0.25"
+                  placeholder="e.g., 0.25"
                   value={lotSizeMin}
                   onChange={(e) => setLotSizeMin(e.target.value)}
                   className="p-2 w-24 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -319,7 +316,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               <div className="flex space-x-2">
                 <input
                   type="number"
-                  placeholder="e.g. 1"
+                  placeholder="e.g., 1"
                   value={lotSizeMax}
                   onChange={(e) => setLotSizeMax(e.target.value)}
                   className="p-2 w-24 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -342,7 +339,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 7"
+                placeholder="e.g., 7"
                 value={daysOnMarketMin}
                 onChange={(e) => setDaysOnMarketMin(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -354,7 +351,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 30"
+                placeholder="e.g., 30"
                 value={daysOnMarketMax}
                 onChange={(e) => setDaysOnMarketMax(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -375,7 +372,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Hennepin"
+                placeholder="e.g., Hennepin"
                 value={county}
                 onChange={(e) => setCounty(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -387,7 +384,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 55401"
+                placeholder="e.g., 55401"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -423,7 +420,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Hardwood Floors, Kitchen Island"
+                placeholder="e.g., Hardwood Floors, Kitchen Island"
                 value={amenities}
                 onChange={(e) => setAmenities(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -465,13 +462,12 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Dishwasher, Microwave"
+                placeholder="e.g., Dishwasher, Microwave"
                 value={appliances}
                 onChange={(e) => setAppliances(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
               />
             </div>
-            {/* Cooling dropdown (example) */}
             <div>
               <label className="block mb-1 text-gray-700 font-medium">
                 Cooling
@@ -487,7 +483,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
                 <option value="none">None</option>
               </select>
             </div>
-            {/* Heating dropdown (example) */}
             <div>
               <label className="block mb-1 text-gray-700 font-medium">
                 Heating
@@ -509,7 +504,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="number"
-                placeholder="e.g. 2"
+                placeholder="e.g., 2"
                 value={garageSpaces}
                 onChange={(e) => setGarageSpaces(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -521,7 +516,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Tree Coverage, Corner Lot"
+                placeholder="e.g., Tree Coverage, Corner Lot"
                 value={lotFeatures}
                 onChange={(e) => setLotFeatures(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"
@@ -533,7 +528,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 'Newly renovated' or 'Riverfront'"
+                placeholder="e.g., 'Newly renovated' or 'Riverfront'"
                 value={remarksQuery}
                 onChange={(e) => setRemarksQuery(e.target.value)}
                 className="p-2 w-full border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-800"

@@ -297,12 +297,12 @@ export default function Home() {
             Transparent MLS data, real-time listings, and honest property info.
           </p>
           {/* SearchForm Component */}
-          <SearchForm onSearch={handleSearch} />
+          <SearchForm />
         </div>
       </div>
 
       {/* Main Content: Search Results */}
-      <div className="flex-1 p-5">
+      {/*<div className="flex-1 p-5">
         {loading && <p className="text-center">Loading listings...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
         {listings.length > 0 ? (
@@ -323,7 +323,7 @@ export default function Home() {
             </p>
           )
         )}
-      </div>
+      </div>*/}
 
       {/* Footer */}
       <Footer />
