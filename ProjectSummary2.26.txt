@@ -1,0 +1,121 @@
+Project Summary (listingsandsolds.com)
+--------------------------------------
+
+Vision:
+- Goal: Build a minimalist, consumer-first real estate search site that displays real-time MLS data without intrusive lead-gen tactics. Users can search active and sold listings, see property details, and optionally contact the site owner (Mark) for more info.
+- Key Principles:
+  • No forced sign-ups or spam.
+  • Minimal fluff—quick search, honest property info, and user-friendly interface.
+  • Transparency and speed, with advanced filtering/pagination to handle large data sets.
+
+Current Status & Accomplishments:
+1. Frontend:
+   - Next.js 13 with the App Router
+     • app/search/page.tsx for listing search results.
+     • app/listing/[id]/page.tsx for individual listing details.
+   - Tailwind CSS for styling.
+   - Deployed on Vercel (e.g., https://listingsandsolds.vercel.app/).
+   - Environment variables: NEXT_PUBLIC_API_URL pointing to the live backend.
+
+2. Backend:
+   - Express.js API, deployed via Serverless Framework on AWS Lambda + API Gateway.
+   - Endpoints:
+     • GET /api/listings?limit=&page=  -> returns paginated listings from PostgreSQL.
+     • GET /api/listings/:id          -> returns a single listing by "ListingKey" or "ListingId".
+     • POST /api/contact              -> handles contact form submissions.
+   - Live base URL (example):
+     https://uhu9zhimrf.execute-api.us-east-2.amazonaws.com/dev
+   - Folder structure (backend):
+     backend/
+       ├ controllers/
+       │   ├ listingsController.js
+       │   └ contactController.js
+       ├ routes/
+       │   ├ listings.js
+       │   └ contact.js
+       ├ data/
+       │   └ (json data or placeholders)
+       ├ serverless.yml
+       ├ index.js
+       ├ ingest.js (MLS data ingestion script)
+       └ .env (PGHOST, PGPORT, etc.)
+
+3. Database:
+   - AWS RDS (PostgreSQL), publicly accessible for now.
+   - Schema:
+     • A table named listings with quoted columns to match MLS feed fields exactly (e.g., "ListingKey", "City").
+     • Additional columns plus a raw_data JSONB column for the full MLS record.
+   - Ingestion:
+     • Node.js script that reads MLS JSON or feed and inserts/updates the listings table.
+
+4. Live Integration & Testing:
+   - The site on Vercel now calls the AWS API Gateway endpoint, which queries the PostgreSQL database.
+   - End-to-end flow is proven: Next.js -> (fetch) -> Express/Lambda -> PostgreSQL.
+   - Pagination & partial data returns to avoid massive payloads.
+
+Folder Structure (High-Level):
+home-search/
+  ├ frontend/
+  │   ├ app/
+  │   │   ├ listing/[id]/page.tsx
+  │   │   ├ search/page.tsx
+  │   │   └ ...
+  │   ├ components/
+  │   │   └ (ListingCard, PhotoCarousel, SearchForm, etc.)
+  │   ├ types/
+  │   │   └ Listing.ts
+  │   └ ...
+  ├ backend/
+  │   ├ controllers/
+  │   │   ├ listingsController.js
+  │   │   └ contactController.js
+  │   ├ routes/
+  │   │   ├ listings.js
+  │   │   └ contact.js
+  │   ├ data/
+  │   │   └ (mls_listings.json or placeholders)
+  │   ├ serverless.yml
+  │   ├ index.js
+  │   ├ ingest.js
+  │   └ .env
+  └ ...
+
+Tech Stack Specifics:
+- Front End: Next.js 13, Tailwind CSS, deployed on Vercel.
+- Back End:
+  • Node.js + Express
+  • Deployed with Serverless Framework -> AWS Lambda + API Gateway
+  • AWS RDS (PostgreSQL) for data
+  • Potential S3 / CloudFront for static images
+- Key URLs:
+  • Frontend (Vercel): https://listingsandsolds.vercel.app/ (example)
+  • Backend (API Gateway): https://uhu9zhimrf.execute-api.us-east-2.amazonaws.com/dev
+- Current DB Schema:
+  • listings table with quoted columns matching MLS feed (e.g., "ListingKey", "City", etc.)
+  • raw_data JSONB
+
+Planned Next Steps:
+1. Photo/Media Integration:
+   • Ensure ingestion script populates "Media" or "Photos" fields.
+   • Update frontend to display images.
+
+2. Performance & Pagination Enhancements:
+   • Possibly move from SELECT * to selective columns if data sets are huge.
+   • Advanced filtering (price range, city, beds/baths) to reduce payload size.
+
+3. Search Page:
+   • Update the frontend to pass query params (limit, page, filters).
+   • Show results with pagination controls.
+
+4. Refine DB & API:
+   • Possibly move Lambda + RDS into private VPC or keep public for simplicity.
+   • Index frequently queried columns for speed.
+
+5. Production Hardening:
+   • Check logging/monitoring (CloudWatch).
+   • Possibly add caching (Redis, CloudFront) if needed.
+
+6. MLS Compliance & Launch:
+   • Final review with MLS for approval once performance and features are stable.
+
+End of Summary

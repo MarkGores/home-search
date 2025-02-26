@@ -1,26 +1,28 @@
 // backend/controllers/listingsController.js
 const { Pool } = require('pg');
 
-// Create a pool using environment variables (ensure these are set in your backend/.env)
+// Create a connection pool using environment variables from your .env file
 const pool = new Pool({
-  host: process.env.PGHOST,
-  port: process.env.PGPORT,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
+  host: process.env.PGHOST,         // e.g., database-1.c7s6ewq8sbmg.us-east-2.rds.amazonaws.com
+  port: process.env.PGPORT,         // typically 5432
+  user: process.env.PGUSER,         // e.g., postgres
+  password: process.env.PGPASSWORD, // your password
+  database: process.env.PGDATABASE, // e.g., postgres (or your custom DB name)
   ssl: {
     rejectUnauthorized: false,
   },
 });
 
-// GET all listings with pagination, returning all fields
+// GET all listings with pagination
 exports.getAllListings = async (req, res) => {
-  // Get pagination parameters from the query string (defaults: limit=100, page=1)
+  // Use query parameters for pagination; defaults: limit = 100, page = 1
   const limit = Number(req.query.limit) || 100;
   const page = Number(req.query.page) || 1;
   const offset = (page - 1) * limit;
 
   try {
+    // Use SELECT * to return all columns. Since your table uses quoted, case‐sensitive names,
+    // the returned JSON keys will match the original MLS feed fields (e.g., "ListingKey", "City", etc.)
     const query = `
       SELECT *
       FROM listings
@@ -34,10 +36,11 @@ exports.getAllListings = async (req, res) => {
   }
 };
 
-// GET single listing by ID/Key, returning all fields
+// GET single listing by ID/Key
 exports.getListingById = async (req, res) => {
-  const listingParam = req.params.id; // Could be "ListingKey" or "ListingId"
+  const listingParam = req.params.id; // This should match either "ListingKey" or "ListingId"
   try {
+    // Explicitly quote column names so the response JSON keys match exactly as defined in your table.
     const query = `
       SELECT *
       FROM listings
