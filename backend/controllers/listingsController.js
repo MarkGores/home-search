@@ -1,7 +1,7 @@
 // backend/controllers/listingsController.js
 const { Pool } = require('pg');
 
-// Create a pool using environment variables (make sure they're set in your backend/.env)
+// Create a pool using environment variables (ensure these are set in your backend/.env)
 const pool = new Pool({
   host: process.env.PGHOST,
   port: process.env.PGPORT,
@@ -13,10 +13,20 @@ const pool = new Pool({
   },
 });
 
-// GET all listings
+// GET all listings with pagination and selective columns
 exports.getAllListings = async (req, res) => {
+  // Get pagination parameters from the query string (defaults: limit=100, page=1)
+  const limit = Number(req.query.limit) || 100;
+  const page = Number(req.query.page) || 1;
+  const offset = (page - 1) * limit;
+
   try {
-    const result = await pool.query('SELECT * FROM listings');
+    const query = `
+      SELECT listingkey, listingid, listprice, bedroomstotal, bathroomstotalinteger, city, streetname
+      FROM listings
+      LIMIT $1 OFFSET $2
+    `;
+    const result = await pool.query(query, [limit, offset]);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching listings:', error);
@@ -28,12 +38,12 @@ exports.getAllListings = async (req, res) => {
 exports.getListingById = async (req, res) => {
   const listingParam = req.params.id; // Could be ListingKey or ListingId
   try {
-    const result = await pool.query(
-      `SELECT * 
-       FROM listings
-       WHERE listingkey = $1 OR listingid = $1`,
-      [listingParam]
-    );
+    const query = `
+      SELECT * 
+      FROM listings
+      WHERE listingkey = $1 OR listingid = $1
+    `;
+    const result = await pool.query(query, [listingParam]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Listing not found' });
     }

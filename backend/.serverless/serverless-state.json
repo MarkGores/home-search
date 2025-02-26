@@ -110,13 +110,13 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-                "S3Key": "serverless/listings-api/dev/1740602319058-2025-02-26T20:38:39.058Z/listings-api.zip"
+                "S3Key": "serverless/listings-api/dev/1740604607046-2025-02-26T21:16:47.046Z/listings-api.zip"
               },
               "Handler": "handler.app",
               "Runtime": "nodejs18.x",
               "FunctionName": "listings-api-dev-app",
               "MemorySize": 1024,
-              "Timeout": 6,
+              "Timeout": 30,
               "Environment": {
                 "Variables": {
                   "PGHOST": "database-1.c7s6ewq8sbmg.us-east-2.rds.amazonaws.com",
@@ -137,14 +137,14 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersionvyijKXeyZH8wDQcegYwHGV58CJXoWeJRYWcMtIorf48": {
+          "AppLambdaVersionpiSexgC4aYrzlZCvEotyUHVtbvfyzZeX362e9WsyU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "qnu3gvOIfJAgtSOE+prcUjrgU6DW2MPRy+l1tgE9iHY="
+              "CodeSha256": "XnTWi1IBiOV0O00dYPVKqtQWJx+l0gB0d3LCgrw/CLw="
             }
           },
           "ApiGatewayRestApi": {
@@ -265,7 +265,7 @@
               "AppLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1740602312912": {
+          "ApiGatewayDeployment1740604601620": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -326,7 +326,7 @@
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersionvyijKXeyZH8wDQcegYwHGV58CJXoWeJRYWcMtIorf48"
+              "Ref": "AppLambdaVersionpiSexgC4aYrzlZCvEotyUHVtbvfyzZeX362e9WsyU"
             },
             "Export": {
               "Name": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
@@ -366,6 +366,7 @@
     "functions": {
       "app": {
         "handler": "handler.app",
+        "timeout": 30,
         "events": [
           {
             "http": {
@@ -395,10 +396,9 @@
         "name": "listings-api-dev-app",
         "package": {},
         "memory": 1024,
-        "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersionvyijKXeyZH8wDQcegYwHGV58CJXoWeJRYWcMtIorf48"
+        "versionLogicalId": "AppLambdaVersionpiSexgC4aYrzlZCvEotyUHVtbvfyzZeX362e9WsyU"
       }
     },
     "configValidationMode": "warn",
@@ -418,7 +418,7 @@
     "artifact": "/Users/markgores/home-search/backend/.serverless/listings-api.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/listings-api/dev/1740602319058-2025-02-26T20:38:39.058Z",
+    "artifactDirectoryName": "serverless/listings-api/dev/1740604607046-2025-02-26T21:16:47.046Z",
     "artifact": "listings-api.zip"
   }
 }

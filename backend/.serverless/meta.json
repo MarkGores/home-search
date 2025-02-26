@@ -22,6 +22,7 @@
       "functions": {
         "app": {
           "handler": "handler.app",
+          "timeout": 30,
           "events": [
             {
               "http": {
@@ -58,11 +59,12 @@
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "serviceRawFile": "service: listings-api\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: us-east-2\n  stage: dev\n  environment:\n    PGHOST: ${env:PGHOST}\n    PGPORT: ${env:PGPORT}\n    PGUSER: ${env:PGUSER}\n    PGPASSWORD: ${env:PGPASSWORD}\n    PGDATABASE: ${env:PGDATABASE}\n\nfunctions:\n  app:\n    handler: handler.app\n    events:\n      - http:\n          path: /{proxy+}\n          method: any\n          cors: true",
+    "serviceRawFile": "service: listings-api\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: us-east-2\n  stage: dev\n  environment:\n    PGHOST: ${env:PGHOST}\n    PGPORT: ${env:PGPORT}\n    PGUSER: ${env:PGUSER}\n    PGPASSWORD: ${env:PGPASSWORD}\n    PGDATABASE: ${env:PGDATABASE}\n\nfunctions:\n  app:\n    handler: handler.app\n    timeout: 30  # In seconds, increase as needed\n    events:\n      - http:\n          path: /{proxy+}\n          method: any\n          cors: true",
     "command": [
       "logs"
     ],
     "options": {
+      "debug": "*",
       "function": "app",
       "stage": "dev"
     },
@@ -74,12 +76,12 @@
     "serviceProviderAwsCfStackName": "listings-api-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-2:908027405372:stack/listings-api-dev/4ce27c30-f47f-11ef-b9e5-0a71a402a301",
     "serviceProviderAwsCfStackCreated": "2025-02-26T20:21:46.121Z",
-    "serviceProviderAwsCfStackUpdated": null,
-    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackUpdated": "2025-02-26T20:43:53.493Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "AppLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-2:908027405372:function:listings-api-dev-app:1",
+        "OutputValue": "arn:aws:lambda:us-east-2:908027405372:function:listings-api-dev-app:2",
         "Description": "Current Lambda function version",
         "ExportName": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
       },
