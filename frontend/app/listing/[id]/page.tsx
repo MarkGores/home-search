@@ -43,7 +43,9 @@ export default function ListingDetail() {
       setLoading(false);
       return;
     }
-    const url = `http://localhost:3001/api/listings/${id}`;
+    // Use environment variable for API URL; defaults to localhost if not set
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const url = `${apiUrl}/api/listings/${id}`;
     fetch(url)
       .then((res) => {
         if (!res.ok) {
@@ -71,7 +73,8 @@ export default function ListingDetail() {
       price: listing.ListPrice || "N/A",
     };
     try {
-      const res = await fetch("http://localhost:3001/api/contact", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -287,10 +290,6 @@ export default function ListingDetail() {
               <p className="font-bold">Garage Spaces</p>
               <p>{listing.GarageSpaces || "N/A"}</p>
             </div>
-            {/*<div>
-              <p className="font-bold">Lot Features</p>
-              <p>{listing.LotFeatures ? listing.LotFeatures.join(", ") : "N/A"}</p>
-            </div>*/}
             <div>
               <p className="font-bold">Postal Code</p>
               <p>{listing.PostalCode || "N/A"}</p>

@@ -13,7 +13,7 @@ const pool = new Pool({
   },
 });
 
-// GET all listings with pagination and selective columns
+// GET all listings with pagination, returning all fields
 exports.getAllListings = async (req, res) => {
   // Get pagination parameters from the query string (defaults: limit=100, page=1)
   const limit = Number(req.query.limit) || 100;
@@ -22,7 +22,7 @@ exports.getAllListings = async (req, res) => {
 
   try {
     const query = `
-      SELECT listingkey, listingid, listprice, bedroomstotal, bathroomstotalinteger, city, streetname
+      SELECT *
       FROM listings
       LIMIT $1 OFFSET $2
     `;
@@ -34,14 +34,14 @@ exports.getAllListings = async (req, res) => {
   }
 };
 
-// GET single listing by ID/Key
+// GET single listing by ID/Key, returning all fields
 exports.getListingById = async (req, res) => {
-  const listingParam = req.params.id; // Could be ListingKey or ListingId
+  const listingParam = req.params.id; // Could be "ListingKey" or "ListingId"
   try {
     const query = `
-      SELECT * 
+      SELECT *
       FROM listings
-      WHERE listingkey = $1 OR listingid = $1
+      WHERE "ListingKey" = $1 OR "ListingId" = $1
     `;
     const result = await pool.query(query, [listingParam]);
     if (result.rows.length === 0) {

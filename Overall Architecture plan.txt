@@ -71,3 +71,5 @@ Overall Architecture Recap
 	•	AWS S3 for photo storage paired with CloudFront as the CDN to deliver images quickly worldwide.
 	6.	Domain & SSL:
 	•	Use AWS Route 53 and AWS Certificate Manager (or Vercel’s integrated SSL) to manage your domain (ListingsAndSolds.com) and ensure security.
+
+Now your GET /api/listings endpoint is returning data successfully from PostgreSQL via your Express API deployed on Lambda/API Gateway.
