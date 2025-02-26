@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Listing } from "../types/Listing";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css"; // Basic Swiper styles
@@ -70,9 +71,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           >
             {listing.Media?.map((mediaItem, idx) => (
               <SwiperSlide key={mediaItem.MediaKey || idx}>
-                <img
+                <Image
                   src={mediaItem.MediaURL}
                   alt={`Photo ${idx + 1}`}
+                  width={800}
+                  height={192} // 48 * 4 = 192px, matching h-48 from Tailwind
                   className="w-full h-48 object-cover"
                   loading="lazy"
                 />
@@ -117,9 +120,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
 
       {/* Broker Reciprocity Statement */}
       <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-        <img
+        <Image
           src="/images/broker-reciprocity-logo.png"
           alt="Broker Reciprocity Logo"
+          width={16}
+          height={16}
           className="w-4 h-4"
         />
         <span>Courtesy of {brokerName}.</span>

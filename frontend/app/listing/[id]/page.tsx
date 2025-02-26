@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Thumbs, Navigation, Pagination } from "swiper/modules";
+import { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import Footer from "../../../components/Footer";
+import { Listing, MediaItem } from "../../../types/Listing";
 
 function BrokerInfo({ brokerageName }: { brokerageName: string }) {
   return (
@@ -18,31 +21,29 @@ function BrokerInfo({ brokerageName }: { brokerageName: string }) {
 const lastDataUploadTimestamp = "2025-02-21 12:00 PM";
 
 export default function ListingDetail() {
-  const { id } = useParams(); // id should now be something like "NST7026453"
+  const { id } = useParams();
   const router = useRouter();
-  const [listing, setListing] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
   // Contact Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactMessage, setContactMessage] = useState("");
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [contactName, setContactName] = useState<string>("");
+  const [contactEmail, setContactEmail] = useState<string>("");
+  const [contactMessage, setContactMessage] = useState<string>("");
 
-  const [showAllDetails, setShowAllDetails] = useState(false);
+  const [showAllDetails, setShowAllDetails] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log("ListingDetail useEffect triggered. id =", id);
     if (!id) {
       setError("No listing id provided.");
       setLoading(false);
       return;
     }
-    // Use the id directly
     const url = `http://localhost:3001/api/listings/${id}`;
-    console.log("Fetching listing with url =", url);
     fetch(url)
       .then((res) => {
         if (!res.ok) {
@@ -50,13 +51,11 @@ export default function ListingDetail() {
         }
         return res.json();
       })
-      .then((data) => {
-        console.log("Listing data fetched:", data);
+      .then((data: Listing) => {
         setListing(data);
         setLoading(false);
       })
-      .catch((err: any) => {
-        console.error("Error in fetch:", err);
+      .catch((err: Error) => {
         setError(err.message);
         setLoading(false);
       });
@@ -64,6 +63,7 @@ export default function ListingDetail() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!listing) return;
     const propertyDetails = {
       listingId: listing.ListingId || listing.ListingKey,
       address: `${listing.StreetNumber || ""} ${listing.StreetName || ""} ${listing.StreetSuffix || ""}`.trim(),
@@ -111,7 +111,7 @@ export default function ListingDetail() {
   const sqFt = listing.LivingArea || "N/A";
   const style = listing.PropertySubType || "N/A";
   const remarks = listing.PublicRemarks || "No description available.";
-  const photos = listing.Media || [];
+  const photos: MediaItem[] = listing.Media || [];
 
   const additionalDetails = [
     { label: "MLS#", value: mlsNumber },
@@ -145,13 +145,15 @@ export default function ListingDetail() {
             slidesPerView={1}
             className="mt-4"
           >
-            {photos.map((photo: any, index: number) => (
+            {photos.map((photo, index) => (
               <SwiperSlide key={photo.MediaKey || index}>
-                <img
+                <Image
                   src={photo.MediaURL}
                   alt={`Photo ${index + 1} of ${address}`}
+                  width={800}
+                  height={600}
                   className="w-full h-auto object-cover"
-                  loading="lazy"
+                  priority={index === 0}
                 />
               </SwiperSlide>
             ))}
@@ -165,13 +167,14 @@ export default function ListingDetail() {
               watchSlidesProgress={true}
               className="mt-2"
             >
-              {photos.map((photo: any, index: number) => (
+              {photos.map((photo, index) => (
                 <SwiperSlide key={`thumb-${photo.MediaKey || index}`}>
-                  <img
+                  <Image
                     src={photo.MediaURL}
                     alt={`Thumbnail ${index + 1}`}
+                    width={150}
+                    height={80}
                     className="w-full h-20 object-cover"
-                    loading="lazy"
                   />
                 </SwiperSlide>
               ))}
@@ -199,16 +202,16 @@ export default function ListingDetail() {
         ))}
       </div>
 
-      {/* Description / Remarks with "See all details" link */}
+      {/* Description / Remarks with "See all details"  */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Description / Remarks</h2>
         <p>{remarks}</p>
-        <a
+        <button
           onClick={() => setShowAllDetails(!showAllDetails)}
           className="text-blue-600 underline cursor-pointer mt-2 block"
         >
           See all details
-        </a>
+        </button>
       </div>
 
       {/* Additional Listing Details (Expanded Section) */}
@@ -284,10 +287,10 @@ export default function ListingDetail() {
               <p className="font-bold">Garage Spaces</p>
               <p>{listing.GarageSpaces || "N/A"}</p>
             </div>
-            <div>
+            {/*<div>
               <p className="font-bold">Lot Features</p>
               <p>{listing.LotFeatures ? listing.LotFeatures.join(", ") : "N/A"}</p>
-            </div>
+            </div>*/}
             <div>
               <p className="font-bold">Postal Code</p>
               <p>{listing.PostalCode || "N/A"}</p>
@@ -310,10 +313,12 @@ export default function ListingDetail() {
 
       {/* Broker Reciprocity Statement */}
       <div className="mb-6 flex items-center">
-        <img
+        <Image
           src="/images/broker-reciprocity-logo.png"
           alt="Broker Reciprocity Logo"
-          className="h-6 w-6 mr-2"
+          width={24}
+          height={24}
+          className="mr-2"
         />
         <p className="text-sm">
           This listing courtesy of {listing.ListOfficeName || "Unknown Broker"}.
@@ -400,10 +405,12 @@ export default function ListingDetail() {
       {/* Disclaimer Block with Timestamp */}
       <div className="mt-8 p-4 border-t border-gray-300 text-sm">
         <div className="flex items-center mb-2">
-          <img
+          <Image
             src="/images/northstar-logo.png"
             alt="NorthstarMLS Logo"
-            className="h-6 mr-2"
+            width={24}
+            height={24}
+            className="mr-2"
           />
           <span>
             Based on information submitted to the MLS GRID as of {lastDataUploadTimestamp}.

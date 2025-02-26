@@ -11,6 +11,10 @@ export interface Media {
     MediaKey: string;
     LongDescription?: string;
   }
+  export interface MediaItem {
+    MediaKey?: string;
+    MediaURL: string;
+  }
   
   export interface Listing {
     "@odata.id"?: string;
@@ -136,11 +140,12 @@ export interface Media {
     TaxYear?: number;
     TaxAnnualAmount?: number;
     WaterSource?: string[];
+    WaterfrontYN?: boolean;
     YearBuilt?: number;
     ZoningDescription?: string;
     OriginatingSystemName?: string;
     ModificationTimestamp?: string;
-    Media?: Media[];
+    Media?: MediaItem[];
     PhotosChangeTimestamp?: string;
     MlgCanView?: boolean;
     MlgCanUse?: string[];

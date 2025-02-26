@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Listing } from "../types/Listing";
 
 export type SearchCriteria = {
   // Basic

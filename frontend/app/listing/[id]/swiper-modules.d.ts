@@ -1,5 +1,6 @@
-declare module "swiper" {
-    export * from "swiper/types";
-    export const Navigation: any;
-    export const Pagination: any;
-  }
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare module "swiper/modules" {
+  export const Thumbs: any;
+  export const Navigation: any;
+  export const Pagination: any;
+}

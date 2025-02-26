@@ -1,10 +1,10 @@
-// frontend/components/PhotoCarousel.tsx
 "use client";
 
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/thumbs';
+import Image from 'next/image';
 import { Media } from '../types/Listing';
 
 interface PhotoCarouselProps {
@@ -20,7 +20,14 @@ const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ media }) => {
     <Swiper spaceBetween={10} slidesPerView={1}>
       {media.map((m) => (
         <SwiperSlide key={m.MediaKey}>
-          <img src={m.MediaURL} alt={`Media ${m.MediaObjectID}`} className="object-cover" />
+          <div className="relative w-full h-64">
+            <Image
+              src={m.MediaURL}
+              alt={`Media ${m.MediaObjectID}`}
+              fill
+              className="object-cover"
+            />
+          </div>
         </SwiperSlide>
       ))}
     </Swiper>
