@@ -1,0 +1,23 @@
+service: listings-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-2
+  stage: dev
+  environment:
+    PGHOST: ${env:PGHOST}
+    PGPORT: ${env:PGPORT}
+    PGUSER: ${env:PGUSER}
+    PGPASSWORD: ${env:PGPASSWORD}
+    PGDATABASE: ${env:PGDATABASE}
+
+functions:
+  app:
+    handler: handler.app
+    timeout: 30  # In seconds, increase as needed
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true

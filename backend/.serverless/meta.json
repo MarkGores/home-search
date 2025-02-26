@@ -1,0 +1,99 @@
+{
+  "/Users/markgores/home-search/backend/serverless.yml": {
+    "versionFramework": "4.7.0",
+    "servicePath": "/Users/markgores/home-search/backend/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "listings-api",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs18.x",
+        "region": "us-east-2",
+        "stage": "dev",
+        "environment": {
+          "PGHOST": "database-1.c7s6ewq8sbmg.us-east-2.rds.amazonaws.com",
+          "PGPORT": "5432",
+          "PGUSER": "postgres",
+          "PGPASSWORD": "<REDACTED>",
+          "PGDATABASE": "postgres"
+        },
+        "versionFunctions": true
+      },
+      "functions": {
+        "app": {
+          "handler": "handler.app",
+          "events": [
+            {
+              "http": {
+                "path": "/{proxy+}",
+                "method": "any",
+                "cors": true
+              }
+            }
+          ],
+          "name": "listings-api-dev-app"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "us-east-2",
+      "stage": "dev",
+      "environment": {
+        "PGHOST": "database-1.c7s6ewq8sbmg.us-east-2.rds.amazonaws.com",
+        "PGPORT": "5432",
+        "PGUSER": "postgres",
+        "PGPASSWORD": "<REDACTED>",
+        "PGDATABASE": "postgres"
+      },
+      "versionFunctions": true
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: listings-api\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: us-east-2\n  stage: dev\n  environment:\n    PGHOST: ${env:PGHOST}\n    PGPORT: ${env:PGPORT}\n    PGUSER: ${env:PGUSER}\n    PGPASSWORD: ${env:PGPASSWORD}\n    PGDATABASE: ${env:PGDATABASE}\n\nfunctions:\n  app:\n    handler: handler.app\n    events:\n      - http:\n          path: /{proxy+}\n          method: any\n          cors: true",
+    "command": [
+      "logs"
+    ],
+    "options": {
+      "function": "app",
+      "stage": "dev"
+    },
+    "orgId": "bdbd37d9-5db5-44e5-b879-d908ef321c5d",
+    "orgName": "markgores",
+    "userId": "9fcRJNPlFWFYsxSXhT",
+    "userName": "markgores",
+    "serviceProviderAwsAccountId": "908027405372",
+    "serviceProviderAwsCfStackName": "listings-api-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-2:908027405372:stack/listings-api-dev/4ce27c30-f47f-11ef-b9e5-0a71a402a301",
+    "serviceProviderAwsCfStackCreated": "2025-02-26T20:21:46.121Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "AppLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:908027405372:function:listings-api-dev-app:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServiceEndpoint",
+        "OutputValue": "https://uhu9zhimrf.execute-api.us-east-2.amazonaws.com/dev",
+        "Description": "URL of the service endpoint",
+        "ExportName": "sls-listings-api-dev-ServiceEndpoint"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
+        "ExportName": "sls-listings-api-dev-ServerlessDeploymentBucketName"
+      }
+    ]
+  }
+}
