@@ -5,7 +5,6 @@ import { useEffect, useState, useMemo } from "react";
 import ListingCard from "./ListingCard";
 import { Listing } from "../types/Listing";
 
-
 export default function SearchResultsContent() {
   const searchParams = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
@@ -13,108 +12,51 @@ export default function SearchResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<string>("");
 
-  // Cast criteria as Record<string, string>
+  // Convert URL search parameters to an object
   const criteria = useMemo(
     () => Object.fromEntries(searchParams.entries()) as Record<string, string>,
     [searchParams]
   );
 
   useEffect(() => {
-    async function fetchAndFilter() {
+    async function fetchListings() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("http://localhost:3001/api/listings");
-        if (!res.ok) throw new Error("Network response was not ok");
+        // Create a copy of the criteria to send to the API
+        const criteriaForAPI = { ...criteria };
+
+        // Map "searchQuery" (from the search form) to "city" (for the backend)
+        if (criteriaForAPI.searchQuery) {
+          criteriaForAPI.city = criteriaForAPI.searchQuery;
+          delete criteriaForAPI.searchQuery;
+        }
+
+        // Build the query string from the criteriaForAPI object
+        const queryString = new URLSearchParams(criteriaForAPI).toString();
+
+        // Use the online API endpoint (not localhost)
+        const res = await fetch(
+          "https://uhu9zhimrf.execute-api.us-east-2.amazonaws.com/dev/api/listings?" +
+            queryString
+        );
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        // Expect the API to return the filtered and paginated data
         const data: Listing[] = await res.json();
-
-        const filtered = data.filter((listing: Listing) => {
-          let matches = true;
-
-          // Search Query filtering
-          if (criteria.searchQuery) {
-            const query = criteria.searchQuery.toLowerCase();
-            const cityMatch = listing.City
-              ? listing.City.toLowerCase().includes(query)
-              : false;
-            const streetMatch = listing.StreetName
-              ? listing.StreetName.toLowerCase().includes(query)
-              : false;
-            matches = matches && (cityMatch || streetMatch);
-          }
-          // Price filtering
-          if (criteria.priceMin) {
-            matches = matches && listing.ListPrice >= Number(criteria.priceMin);
-          }
-          if (criteria.priceMax) {
-            matches = matches && listing.ListPrice <= Number(criteria.priceMax);
-          }
-          // Bedrooms filtering
-          if (criteria.bedroomsMin) {
-            matches = matches && ((listing.BedroomsTotal ?? 0) >= Number(criteria.bedroomsMin));
-          }
-          if (criteria.bedroomsMax) {
-            matches = matches && ((listing.BedroomsTotal ?? 0) <= Number(criteria.bedroomsMax));
-          }
-          // Bathrooms filtering
-          if (criteria.bathroomsMin) {
-            matches = matches && ((listing.BathroomsTotalInteger ?? 0) >= Number(criteria.bathroomsMin));
-          }
-          if (criteria.bathroomsMax) {
-            matches = matches && ((listing.BathroomsTotalInteger ?? 0) <= Number(criteria.bathroomsMax));
-          }
-          // Lot size filtering
-          if (criteria.lotSizeMin) {
-            if (criteria.lotSizeUnit === "sqft") {
-              matches =
-                matches &&
-                (listing.LotSizeSquareFeet !== undefined
-                  ? Number(listing.LotSizeSquareFeet) >= Number(criteria.lotSizeMin)
-                  : false);
-            } else {
-              matches =
-                matches &&
-                (listing.LotSizeArea !== undefined
-                  ? Number(listing.LotSizeArea) >= Number(criteria.lotSizeMin)
-                  : false);
-            }
-          }
-          if (criteria.lotSizeMax) {
-            if (criteria.lotSizeUnit === "sqft") {
-              matches =
-                matches &&
-                (listing.LotSizeSquareFeet !== undefined
-                  ? Number(listing.LotSizeSquareFeet) <= Number(criteria.lotSizeMax)
-                  : false);
-            } else {
-              matches =
-                matches &&
-                (listing.LotSizeArea !== undefined
-                  ? Number(listing.LotSizeArea) <= Number(criteria.lotSizeMax)
-                  : false);
-            }
-          }
-          // Waterfront filtering
-          if (criteria.waterfrontOnly === "true") {
-            matches = matches && (listing.WaterfrontYN === true);
-          }
-
-          return matches;
-        });
-
-        setListings(filtered);
+        setListings(data);
       } catch (err) {
-        const errorObj = err as Error;
-        setError(errorObj.message);
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchAndFilter();
+    fetchListings();
   }, [criteria]);
 
-  // Sorting logic
+  // Sorting logic (client‑side sorting of the fetched data)
   const sortedListings = useMemo(() => {
     const sorted = [...listings];
     switch (sortOption) {
@@ -125,10 +67,14 @@ export default function SearchResultsContent() {
         sorted.sort((a, b) => b.ListPrice - a.ListPrice);
         break;
       case "bedsAsc":
-        sorted.sort((a, b) => (a.BedroomsTotal ?? 0) - (b.BedroomsTotal ?? 0));
+        sorted.sort(
+          (a, b) => (a.BedroomsTotal ?? 0) - (b.BedroomsTotal ?? 0)
+        );
         break;
       case "bedsDesc":
-        sorted.sort((a, b) => (b.BedroomsTotal ?? 0) - (a.BedroomsTotal ?? 0));
+        sorted.sort(
+          (a, b) => (b.BedroomsTotal ?? 0) - (a.BedroomsTotal ?? 0)
+        );
         break;
       case "daysAsc":
         sorted.sort((a, b) => (a.DaysOnMarket ?? 0) - (b.DaysOnMarket ?? 0));
