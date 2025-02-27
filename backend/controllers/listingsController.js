@@ -13,7 +13,7 @@ const pool = new Pool({
   },
 });
 
-// GET all listings with dynamic filtering and pagination
+// GET all listings with dynamic filtering, ordering, and pagination
 exports.getAllListings = async (req, res) => {
   // Extract query parameters
   const { all, limit, page, city, priceMin, priceMax, beds, baths } = req.query;
@@ -57,6 +57,10 @@ exports.getAllListings = async (req, res) => {
   if (filters.length > 0) {
     query += ' WHERE ' + filters.join(' AND ');
   }
+
+  // Add an ORDER BY clause to ensure a consistent, full-table search before pagination.
+  // Adjust "ListingId" to a column that makes sense for your data (like a timestamp or primary key).
+  query += ' ORDER BY "ListingId" ASC';
 
   // If "all=true" is specified, bypass pagination (useful for testing full searches)
   if (all && all.toLowerCase() === 'true') {

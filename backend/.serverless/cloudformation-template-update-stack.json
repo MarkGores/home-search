@@ -91,7 +91,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-          "S3Key": "serverless/listings-api/dev/1740666221916-2025-02-27T14:23:41.916Z/listings-api.zip"
+          "S3Key": "serverless/listings-api/dev/1740668031422-2025-02-27T14:53:51.422Z/listings-api.zip"
         },
         "Handler": "handler.app",
         "Runtime": "nodejs18.x",
@@ -118,14 +118,14 @@
         "AppLogGroup"
       ]
     },
-    "AppLambdaVersiongKrzgRLuuLykN4lfZ5xOnt6tyi7hk3HIyrwSDQ": {
+    "AppLambdaVersionjurJ2uYV5AV5GEXCv7Uy8BGvUVwVmTUGTSHLjzBw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AppLambdaFunction"
         },
-        "CodeSha256": "7z6YM/8KivoYz1G/VFIAQ/QmVrp2tGOvuaRQB2b1b1g="
+        "CodeSha256": "xFjVrMLzD76QLmcxD/M713bq+PiyVxYMqc6dQYhL9n4="
       }
     },
     "ApiGatewayRestApi": {
@@ -246,7 +246,7 @@
         "AppLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1740666216114": {
+    "ApiGatewayDeployment1740668025829": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -307,7 +307,7 @@
     "AppLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AppLambdaVersiongKrzgRLuuLykN4lfZ5xOnt6tyi7hk3HIyrwSDQ"
+        "Ref": "AppLambdaVersionjurJ2uYV5AV5GEXCv7Uy8BGvUVwVmTUGTSHLjzBw"
       },
       "Export": {
         "Name": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
