@@ -111,7 +111,7 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-                  "S3Key": "serverless/listings-api/dev/1740613039264-2025-02-26T23:37:19.264Z/listings-api.zip"
+                  "S3Key": "serverless/listings-api/dev/1740666221916-2025-02-27T14:23:41.916Z/listings-api.zip"
                 },
                 "Handler": "handler.app",
                 "Runtime": "nodejs18.x",
@@ -266,7 +266,7 @@
                 "AppLambdaPermissionApiGateway"
               ]
             },
-            "ApiGatewayDeployment1740613033933": {
+            "ApiGatewayDeployment1740666216114": {
               "Type": "AWS::ApiGateway::Deployment",
               "Properties": {
                 "RestApiId": {
@@ -508,7 +508,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-                "S3Key": "serverless/listings-api/dev/1740613039264-2025-02-26T23:37:19.264Z/listings-api.zip"
+                "S3Key": "serverless/listings-api/dev/1740666221916-2025-02-27T14:23:41.916Z/listings-api.zip"
               },
               "Handler": "handler.app",
               "Runtime": "nodejs18.x",
@@ -663,7 +663,7 @@
               "AppLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1740613033933": {
+          "ApiGatewayDeployment1740666216114": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -782,12 +782,12 @@
     "serviceProviderAwsCfStackName": "listings-api-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-2:908027405372:stack/listings-api-dev/4ce27c30-f47f-11ef-b9e5-0a71a402a301",
     "serviceProviderAwsCfStackCreated": "2025-02-26T20:21:46.121Z",
-    "serviceProviderAwsCfStackUpdated": "2025-02-26T23:26:05.151Z",
+    "serviceProviderAwsCfStackUpdated": "2025-02-27T14:11:01.340Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "AppLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-east-2:908027405372:function:listings-api-dev-app:6",
+        "OutputValue": "arn:aws:lambda:us-east-2:908027405372:function:listings-api-dev-app:14",
         "Description": "Current Lambda function version",
         "ExportName": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
       },
@@ -896,7 +896,7 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-              "S3Key": "serverless/listings-api/dev/1740613039264-2025-02-26T23:37:19.264Z/listings-api.zip"
+              "S3Key": "serverless/listings-api/dev/1740666221916-2025-02-27T14:23:41.916Z/listings-api.zip"
             },
             "Handler": "handler.app",
             "Runtime": "nodejs18.x",
@@ -1051,7 +1051,7 @@
             "AppLambdaPermissionApiGateway"
           ]
         },
-        "ApiGatewayDeployment1740613033933": {
+        "ApiGatewayDeployment1740666216114": {
           "Type": "AWS::ApiGateway::Deployment",
           "Properties": {
             "RestApiId": {

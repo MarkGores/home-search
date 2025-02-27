@@ -1,7 +1,7 @@
 // backend/controllers/listingsController.js
 const { Pool } = require('pg');
 
-// Create a connection pool using environment variables from your .env file
+// Create a connection pool using environment variables
 const pool = new Pool({
   host: process.env.PGHOST,         // e.g., database-1.c7s6ewq8sbmg.us-east-2.rds.amazonaws.com
   port: process.env.PGPORT,         // typically 5432
@@ -13,22 +13,73 @@ const pool = new Pool({
   },
 });
 
-// GET all listings with pagination
+// GET all listings with dynamic filtering and pagination
 exports.getAllListings = async (req, res) => {
-  // Use query parameters for pagination; defaults: limit = 100, page = 1
-  const limit = Number(req.query.limit) || 100;
-  const page = Number(req.query.page) || 1;
-  const offset = (page - 1) * limit;
+  // Extract query parameters
+  const { all, limit, page, city, priceMin, priceMax, beds, baths } = req.query;
+
+  // Build dynamic WHERE clause parts
+  let query = 'SELECT * FROM listings';
+  const queryParams = [];
+  const filters = [];
+
+  // Filter by city (case-insensitive)
+  if (city) {
+    filters.push(`"City" ILIKE $${queryParams.length + 1}`);
+    queryParams.push(`%${city}%`);
+  }
+
+  // Filter by minimum price (assuming your table has a "Price" column)
+  if (priceMin) {
+    filters.push(`"Price" >= $${queryParams.length + 1}`);
+    queryParams.push(priceMin);
+  }
+
+  // Filter by maximum price
+  if (priceMax) {
+    filters.push(`"Price" <= $${queryParams.length + 1}`);
+    queryParams.push(priceMax);
+  }
+
+  // Filter by number of beds (assuming a "Beds" column)
+  if (beds) {
+    filters.push(`"Beds" = $${queryParams.length + 1}`);
+    queryParams.push(beds);
+  }
+
+  // Filter by number of baths (assuming a "Baths" column)
+  if (baths) {
+    filters.push(`"Baths" = $${queryParams.length + 1}`);
+    queryParams.push(baths);
+  }
+
+  // Append filters if any exist
+  if (filters.length > 0) {
+    query += ' WHERE ' + filters.join(' AND ');
+  }
+
+  // If "all=true" is specified, bypass pagination (useful for testing full searches)
+  if (all && all.toLowerCase() === 'true') {
+    try {
+      const result = await pool.query(query, queryParams);
+      return res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching all listings:', error);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+  }
+
+  // Otherwise, apply pagination
+  const numericLimit = Number(limit) || 100;
+  const numericPage = Number(page) || 1;
+  const offset = (numericPage - 1) * numericLimit;
+
+  // Append pagination clauses; note that parameter indexes follow any filtering parameters
+  query += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+  queryParams.push(numericLimit, offset);
 
   try {
-    // Use SELECT * to return all columns. Since your table uses quoted, case‐sensitive names,
-    // the returned JSON keys will match the original MLS feed fields (e.g., "ListingKey", "City", etc.)
-    const query = `
-      SELECT *
-      FROM listings
-      LIMIT $1 OFFSET $2
-    `;
-    const result = await pool.query(query, [limit, offset]);
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching listings:', error);
@@ -36,11 +87,10 @@ exports.getAllListings = async (req, res) => {
   }
 };
 
-// GET single listing by ID/Key
+// GET a single listing by ID/Key
 exports.getListingById = async (req, res) => {
-  const listingParam = req.params.id; // This should match either "ListingKey" or "ListingId"
+  const listingParam = req.params.id; // Matches either "ListingKey" or "ListingId"
   try {
-    // Explicitly quote column names so the response JSON keys match exactly as defined in your table.
     const query = `
       SELECT *
       FROM listings
