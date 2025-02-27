@@ -55,7 +55,10 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const sqFt = listing.LivingArea ?? "N/A";
   const propertyType = listing.PropertySubType || "N/A";
   const brokerName = listing.ListOfficeName || "N/A";
-  const photoCount = listing.Media?.length || 0;
+
+  // Updated: use listing.media (lowercase) instead of listing.Media.
+  const photoCount = listing.media?.length || 0;
+
   const bedLabel = beds === 1 ? "bed" : "beds";
   const bathLabel = baths === 1 ? "bath" : "baths";
 
@@ -69,7 +72,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             spaceBetween={0}
             slidesPerView={1}
           >
-            {listing.Media?.map((mediaItem, idx) => (
+            {listing.media?.map((mediaItem, idx) => (
               <SwiperSlide key={mediaItem.MediaKey || idx}>
                 <Image
                   src={mediaItem.MediaURL}

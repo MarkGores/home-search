@@ -110,7 +110,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-2-15c4fde5-354d",
-                "S3Key": "serverless/listings-api/dev/1740670580031-2025-02-27T15:36:20.031Z/listings-api.zip"
+                "S3Key": "serverless/listings-api/dev/1740675927333-2025-02-27T17:05:27.333Z/listings-api.zip"
               },
               "Handler": "handler.app",
               "Runtime": "nodejs18.x",
@@ -137,14 +137,14 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersion3TdKrJmQPBoqMZ6w2zJfwW3vIDJo7B0WfyRZjIxTMU": {
+          "AppLambdaVersionoGouo5OZT3Werwi1zu1BugtZ6tD2sL9DbtVqWy8k": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "3/vsamQi+68y9k5RfuzwFZqCZz6159jlHcACx8bP/A8="
+              "CodeSha256": "C3NzBA/YWkC238mhLI7wCkt7UTcjBAzMRgJwQdk2n9g="
             }
           },
           "ApiGatewayRestApi": {
@@ -265,7 +265,7 @@
               "AppLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1740670573949": {
+          "ApiGatewayDeployment1740675917261": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -326,7 +326,7 @@
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersion3TdKrJmQPBoqMZ6w2zJfwW3vIDJo7B0WfyRZjIxTMU"
+              "Ref": "AppLambdaVersionoGouo5OZT3Werwi1zu1BugtZ6tD2sL9DbtVqWy8k"
             },
             "Export": {
               "Name": "sls-listings-api-dev-AppLambdaFunctionQualifiedArn"
@@ -398,7 +398,7 @@
         "memory": 1024,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersion3TdKrJmQPBoqMZ6w2zJfwW3vIDJo7B0WfyRZjIxTMU"
+        "versionLogicalId": "AppLambdaVersionoGouo5OZT3Werwi1zu1BugtZ6tD2sL9DbtVqWy8k"
       }
     },
     "configValidationMode": "warn",
@@ -418,7 +418,7 @@
     "artifact": "/Users/markgores/home-search/backend/.serverless/listings-api.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/listings-api/dev/1740670580031-2025-02-27T15:36:20.031Z",
+    "artifactDirectoryName": "serverless/listings-api/dev/1740675927333-2025-02-27T17:05:27.333Z",
     "artifact": "listings-api.zip"
   }
 }

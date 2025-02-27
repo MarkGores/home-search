@@ -145,7 +145,7 @@ export interface Media {
     ZoningDescription?: string;
     OriginatingSystemName?: string;
     ModificationTimestamp?: string;
-    Media?: MediaItem[];
+    media?: MediaItem[];
     PhotosChangeTimestamp?: string;
     MlgCanView?: boolean;
     MlgCanUse?: string[];

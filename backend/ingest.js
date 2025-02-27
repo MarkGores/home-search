@@ -70,6 +70,10 @@ async function ingestListings() {
       const NST_LakeChain = fixVarchar10(listing.NST_LakeChain, 50);
       const NST_PotentialShortSale = fixVarchar10(listing.NST_PotentialShortSale, 50);
 
+      // Extract media information from the MLS JSON.
+      // If "Media" exists, use it; otherwise, store null.
+      const media = listing.Media ? JSON.stringify(listing.Media) : null;
+      
       const query = `
         INSERT INTO listings (
           "ListingKey", "ListingId", "ListPrice", "BedroomsTotal", "BathroomsTotalInteger",
@@ -86,7 +90,7 @@ async function ingestListings() {
           "LandLeaseYN", "NST_LastUpdateDate", "Latitude", "NST_LenderOwned", "ListAgentKey", "ListAgentMlsId",
           "ListingContractDate", "ListOfficeKey", "ListOfficeName", "ListOfficeMlsId", "LockBoxType",
           "Longitude", "LotFeatures", "SourceSystemName", "NST_ManufacturedHome", "MapCoordinateSource",
-          "AdditionalParcelsYN", "NST_OfficeBoard", "ParcelNumber", "GarageSpaces", "PhotosCount", "PoolFeatures",
+          "AdditionalParcelsYN", "NST_OfficeBoard", "ParcelNumber", "GarageSpaces", "PhotosCount", "media", "PoolFeatures",
           "PostalCity", "NST_PotentialShortSale", "NST_PowerCompanyName", "NST_PresentUse",
           "NST_PropertySubTypeDesc", "PublicRemarks", "PublicSurveyRange", "PublicSurveySection",
           "PublicSurveyTownship", "NST_RentalLicenseYN", "RoadResponsibility", "Roof", "RoomType",
@@ -113,7 +117,7 @@ async function ingestListings() {
           $81, $82, $83, $84, $85,
           $86, $87, $88, $89, $90,
           $91, $92, $93, $94, $95,
-          $96, $97, $98, $99
+          $96, $97, $98, $99, $100
         )
         ON CONFLICT ("ListingKey") DO UPDATE SET
           "ListingId" = EXCLUDED."ListingId",
@@ -188,6 +192,7 @@ async function ingestListings() {
           "ParcelNumber" = EXCLUDED."ParcelNumber",
           "GarageSpaces" = EXCLUDED."GarageSpaces",
           "PhotosCount" = EXCLUDED."PhotosCount",
+          "media" = EXCLUDED."media",
           "PoolFeatures" = EXCLUDED."PoolFeatures",
           "PostalCity" = EXCLUDED."PostalCity",
           "NST_PotentialShortSale" = EXCLUDED."NST_PotentialShortSale",
@@ -289,32 +294,33 @@ async function ingestListings() {
         listing.ParcelNumber,                // $71
         garageSpacesInt,                     // $72
         photosCountInt,                      // $73
-        listing.PoolFeatures,                // $74
-        listing.PostalCity,                  // $75
-        NST_PotentialShortSale,            // $76
-        listing.NST_PowerCompanyName,        // $77
-        listing.NST_PresentUse,              // $78
-        listing.NST_PropertySubTypeDesc,     // $79
-        listing.PublicRemarks,               // $80
-        listing.PublicSurveyRange,           // $81
-        listing.PublicSurveySection,         // $82
-        listing.PublicSurveyTownship,        // $83
-        NST_RentalLicenseYN,               // $84
-        listing.RoadResponsibility,          // $85
-        listing.Roof,                        // $86
-        listing.RoomType,                    // $87
-        listing.NST_AboveGradeSqFtTotal,      // $88
-        listing.NST_BelowGradeSqFtTotal,      // $89
-        listing.NST_MainLevelFinishedArea,    // $90
-        listing.HighSchoolDistrict,          // $91
-        listing.NST_SchoolDistrictNumber,      // $92
-        listing.NST_SchoolDistrictPhone,      // $93
-        listing.Sewer,                       // $94
-        listing.NST_SpecialSearch,           // $95
-        intify(listing.AboveGradeFinishedArea), // $96
-        intify(listing.BelowGradeFinishedArea), // $97
-        listing.raw_data,                    // $98
-        null                                 // $99: updated_at defaults to CURRENT_TIMESTAMP
+        media,                             // $74: the new media column (JSON array or null)
+        listing.PoolFeatures,                // $75
+        listing.PostalCity,                  // $76
+        NST_PotentialShortSale,            // $77
+        listing.NST_PowerCompanyName,        // $78
+        listing.NST_PresentUse,              // $79
+        listing.NST_PropertySubTypeDesc,     // $80
+        listing.PublicRemarks,               // $81
+        listing.PublicSurveyRange,           // $82
+        listing.PublicSurveySection,         // $83
+        listing.PublicSurveyTownship,        // $84
+        NST_RentalLicenseYN,               // $85
+        listing.RoadResponsibility,          // $86
+        listing.Roof,                        // $87
+        listing.RoomType,                    // $88
+        listing.NST_AboveGradeSqFtTotal,      // $89
+        listing.NST_BelowGradeSqFtTotal,      // $90
+        listing.NST_MainLevelFinishedArea,    // $91
+        listing.HighSchoolDistrict,          // $92
+        listing.NST_SchoolDistrictNumber,      // $93
+        listing.NST_SchoolDistrictPhone,      // $94
+        listing.Sewer,                       // $95
+        listing.NST_SpecialSearch,           // $96
+        intify(listing.AboveGradeFinishedArea), // $97
+        intify(listing.BelowGradeFinishedArea), // $98
+        listing.raw_data,                    // $99
+        null                                 // $100: updated_at defaults to CURRENT_TIMESTAMP
       ];
       await pool.query(query, values);
     }
