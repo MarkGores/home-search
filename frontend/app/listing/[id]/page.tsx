@@ -114,7 +114,7 @@ export default function ListingDetail() {
   const sqFt = listing.LivingArea || "N/A";
   const style = listing.PropertySubType || "N/A";
   const remarks = listing.PublicRemarks || "No description available.";
-  const photos: MediaItem[] = listing.Media || [];
+  const photos: MediaItem[] = listing.media || [];
 
   const additionalDetails = [
     { label: "MLS#", value: mlsNumber },
