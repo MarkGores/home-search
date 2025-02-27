@@ -12,7 +12,7 @@ export default function SearchResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<string>("");
 
-  // Convert URL search parameters to an object
+  // Convert URL search parameters into an object
   const criteria = useMemo(
     () => Object.fromEntries(searchParams.entries()) as Record<string, string>,
     [searchParams]
@@ -22,8 +22,9 @@ export default function SearchResultsContent() {
     async function fetchListings() {
       setLoading(true);
       setError(null);
+
       try {
-        // Create a copy of the criteria to send to the API
+        // Copy the criteria so we can modify it for the API call
         const criteriaForAPI = { ...criteria };
 
         // Map "searchQuery" (from the search form) to "city" (for the backend)
@@ -35,7 +36,7 @@ export default function SearchResultsContent() {
         // Build the query string from the criteriaForAPI object
         const queryString = new URLSearchParams(criteriaForAPI).toString();
 
-        // Use the online API endpoint (not localhost)
+        // Fetch from your AWS API (not localhost)
         const res = await fetch(
           "https://uhu9zhimrf.execute-api.us-east-2.amazonaws.com/dev/api/listings?" +
             queryString
@@ -43,9 +44,21 @@ export default function SearchResultsContent() {
         if (!res.ok) {
           throw new Error("Network response was not ok");
         }
-        // Expect the API to return the filtered and paginated data
-        const data: Listing[] = await res.json();
-        setListings(data);
+
+        // The API might return a bare array OR an object with { listings: [...] }
+        const responseData = await res.json();
+
+        // Determine the actual array of listings
+        let listingsArray: Listing[] = [];
+        if (Array.isArray(responseData)) {
+          // If it's already an array
+          listingsArray = responseData;
+        } else if (Array.isArray(responseData.listings)) {
+          // If the backend returns an object { listings: [...] }
+          listingsArray = responseData.listings;
+        }
+
+        setListings(listingsArray);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -56,7 +69,7 @@ export default function SearchResultsContent() {
     fetchListings();
   }, [criteria]);
 
-  // Sorting logic (client‑side sorting of the fetched data)
+  // Client-side sorting of the fetched data
   const sortedListings = useMemo(() => {
     const sorted = [...listings];
     switch (sortOption) {
@@ -77,10 +90,14 @@ export default function SearchResultsContent() {
         );
         break;
       case "daysAsc":
-        sorted.sort((a, b) => (a.DaysOnMarket ?? 0) - (b.DaysOnMarket ?? 0));
+        sorted.sort(
+          (a, b) => (a.DaysOnMarket ?? 0) - (b.DaysOnMarket ?? 0)
+        );
         break;
       case "daysDesc":
-        sorted.sort((a, b) => (b.DaysOnMarket ?? 0) - (a.DaysOnMarket ?? 0));
+        sorted.sort(
+          (a, b) => (b.DaysOnMarket ?? 0) - (a.DaysOnMarket ?? 0)
+        );
         break;
       default:
         break;
@@ -115,6 +132,7 @@ export default function SearchResultsContent() {
 
       {loading && <p className="text-center">Loading listings...</p>}
       {error && <p className="text-center text-red-600">Error: {error}</p>}
+
       {sortedListings.length > 0 ? (
         <ul className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(325px,1fr))] p-5">
           {sortedListings.map((listing, index) => {
